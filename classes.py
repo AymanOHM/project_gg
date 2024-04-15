@@ -1,176 +1,72 @@
 from OpenGL.GL import * 
 from OpenGL.GLUT import * 
 from OpenGL.GLU import * 
+import pygame as pg
+
+from texture import *
 
 class entity:
     
-    def __init__(self, x, y, width, height, speed):
+    def __init__(self, game, path, pos, size=[50,50], speed=[0,0]):
         
-        self.center = [x, y]
-        self.size   = [width, height]
-        self.update_params()
+        self.pos = list(pos)
+        self.size   = size   #array
+        
+        #texture
+        self.path = path
+        self.tex = Texture(game.assets['player'])
+        
         
         ## Entity transformation ##
-        self.move_left = False
-        self.move_right = False
-        self.jump = False
-        self.in_air = False
+        #movement will be passed from update
+        self.speed = speed  #array
+        self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
+        
+        
+    def rect(self):
+        return pg.Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
+    
+    #the rect method does update param this for us, all we need is to chang pos now    
 
-        self.speed = speed
-        self.vel_y = 0
+          
+    def move(self,map, movement):
+        #resetting collisions every movement
+        self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
         
-    def update_params(self):
-        self.right = self.center[0] + self.size[0]/2
-        self.left  = self.center[0] - self.size[0]/2
-        self.top   = self.center[1] + self.size[1]/2
-        self.bot   = self.center[1] - self.size[1]/2
+        mov_amount = (movement[0] + self.speed[0], movement[1] + self.speed[1])
         
+        self.pos[0] += mov_amount[0]
+        entity_rect = self.rect()
+        for rect in map.p_tiles_around(self.pos):
+            if entity_rect.colliderect(rect):
+                if mov_amount[0] > 0:
+                    self.collisions['right'] = True
+                    entity_rect.right = rect.left
+                if mov_amount[0] < 0:
+                    self.collisions['left'] = True
+                    entity_rect.left = rect.right
+                self.pos[0] = entity_rect.x
+        
+        self.pos[1] += mov_amount[1]
+        entity_rect = self.rect()
+        for rect in map.p_tiles_around(self.pos):
+            if entity_rect.colliderect(rect):
+                if mov_amount[1] > 0:
+                    self.collisions['up'] = True
+                    entity_rect.bottom = rect.top
+                if mov_amount[1] < 0:
+                    self.collisions['down'] = True
+                    entity_rect.top = rect.bottom
+                self.pos[1] = entity_rect.y
+        
+        self.speed[1] = min(5, self.speed[1] - 0.1)
+        
+        if self.collisions['down'] or self.collisions['up']:
+            self.speed[1] = 0
+        
+
     def draw(self):
-        
-        glLoadIdentity()
+        rect = self.rect()
+        self.tex.draw(rect.left,rect.right,rect.top,rect.bottom)
+      
 
-        glBegin(GL_QUADS)
-        glVertex(self.left, self.bot, 0)
-        glVertex(self.left, self.top, 0)
-        glVertex(self.right, self.top, 0)
-        glVertex(self.right, self.bot, 0)
-        
-        glEnd()
-    
-    def move(self):
-        # Location
-        pos_x, pos_y = self.center
-        
-        # Movement variables
-        dx = 0
-        dy = 0
-        
-        # Checking Flags
-        if self.move_left:
-            dx = - self.speed
-        if self.move_right:
-            dx = self.speed
-            
-        if self.jump and not self.in_air:
-            self.jump = False
-            self.vel_y = 30
-            self.in_air = True
-            
-        
-        # Gravity Physics
-        self.vel_y = self.vel_y - GRAVITY
-        dy += self.vel_y
-        
-        if pos_y + dy < 200:
-            dy = pos_y - 200
-            self.in_air = False
-            
-        # Changing the center on X Axis
-        pos_x += dx
-        
-        # Changing the center on Y Axis
-        pos_y += dy
-
-        
-        # Update Attributes
-        self.center = pos_x, pos_y
-        self.update_params()
-
-class ground:
-    def __init__(self, x, y, width):
-        self.center = (x,y)
-        self.size = width
-
-        self.left = x - width/2
-        self.right = x + width/2
-        
-    def draw(self):
-        glLoadIdentity()
-        glBegin(GL_LINES)
-        glVertex(self.left, self.center[1])
-        glVertex(self.right, self.center[1])
-        glEnd()
-        
-
-        
-if __name__ == "__main__":
-    
-    ### Constants ###
-    WINDOW_WIDTH = 800
-    WINDOW_HEIGHT = int(WINDOW_WIDTH * .6)
-    INTERVAL = 10
-    GRAVITY = 2.5
-
-    
-    ### Variables ###
-
-    ### Initialization ###
-    def init():
-        glClearColor(0,0,0,0)
-        
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, 0, 1)
-
-        glMatrixMode(GL_MODELVIEW)
-
-    ### Set Player ###
-    player = entity(200, 200, 50, 50, 10)
-    ### Display ###
-    def display():
-        # Resetting Variables
-        glClear(GL_COLOR_BUFFER_BIT)
-        
-        glLoadIdentity()
-        glColor(0,1,0)
-        player.draw()
-        player.move()
-        ground_list = []
-        ground_list.append(ground(100, 100, 50))
-        ground_list.append(ground(100, 170, 500))
-        for item in ground_list:
-            item.draw()
-        
-        glutSwapBuffers()
-
-    ### Callback ###
-    def keyUp(key, x, y):
-        
-        if key == b'a':
-            player.move_left = False
-            
-        if key == b'd':
-            player.move_right = False
-            
-    def keyDown(key, x, y):
-        if key == b'q':
-            sys.exit()
-        if key == b'a':
-            player.move_left = True
-            
-        if key == b'd':
-            player.move_right = True
-
-        if key == b'w':
-            player.jump = True
-    def mouse_callback(x, y):
-        pass 
-    
-    def game_timer(v):
-        display()
-        glutTimerFunc(INTERVAL, game_timer, 1)
-        
-
-    glutInit()
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
-    glutInitWindowPosition(100,100)
-    glutInitWindowSize(WINDOW_WIDTH,WINDOW_HEIGHT)
-    glutCreateWindow(b"Ball bat game")
-    glutDisplayFunc(display)
-    glutKeyboardFunc(keyDown)
-    glutKeyboardUpFunc(keyUp)
-    # glutSpecialFunc(keyboard2_callback)
-    glutPassiveMotionFunc(mouse_callback)
-    glutTimerFunc(INTERVAL, game_timer, 1)
-    init()
-    glutMainLoop()

@@ -2,6 +2,8 @@ import pygame as pg
 from OpenGL.GL import *
 import sys
 from classes import *
+from helper_func import *
+from tilemap import *
 
 class Game():
     def __init__(self, w=800,h=600):
@@ -13,7 +15,18 @@ class Game():
         pg.display.set_caption("gg")
         self.screen=pg.display.set_mode((w,h),flags= pg.OPENGL | pg.DOUBLEBUF)
         self.clock=pg.time.Clock()
-        self.char=character(200, 200, 100, 100)
+        self.assets = {
+            'decor': load_images('tiles/decor'),
+            'grass': load_images('tiles/grass'),
+            'large_decor': load_images('tiles/large_decor'),
+            'stone': load_images('tiles/stone'),
+            'player': load_image('entities/player.png')
+        }
+        
+        self.player = entity(self, 'player', (50, 50), (8, 15))
+        
+        self.tilemap = Tilemap(self, tile_size=16)
+        
         #OpenGL init
         glClearColor(0.2,0.3,0.3,1.0)
     
@@ -31,7 +44,10 @@ class Game():
         glLoadIdentity()
         # glRotate(theta,0,0,1)
         # glColor3b(52, 73, 102)
-        self.char.draw()
+        self.tilemap.render()
+            
+        self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
+        self.player.draw()
         pg.display.flip()
      
 
@@ -39,6 +55,12 @@ class Game():
         
         while True:
         # glutMainLoop() or pg loop in this case
+            
+            
+           
+           
+            
+            
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
@@ -49,7 +71,7 @@ class Game():
                     if event.key == pg.K_RIGHT:
                         self.movement[1] = True
                     if event.key == pg.K_UP:
-                        self.player.velocity[1] = -3
+                        self.player.speed[1]= 3
                 if event.type == pg.KEYUP:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = False
