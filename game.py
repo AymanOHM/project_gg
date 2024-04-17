@@ -9,7 +9,8 @@ class Game():
     def __init__(self, w=800,h=600):
         self.movement=[False,False]
         
-        
+        self.w=w
+        self.h=h
         #pg init
         pg.init()
         pg.display.set_caption("gg")
@@ -23,9 +24,9 @@ class Game():
             'player': load_image('entities/player.png')
         }
         
-        self.player = entity(self, 'player', (50, 50), (8, 15))
+        self.player = entity(self, 'player', (400, 400), (23, 45))
         
-        self.tilemap = Tilemap(self, tile_size=16)
+        self.tilemap = Tilemap(self, 45)
         
         #OpenGL init
         glClearColor(0.2,0.3,0.3,1.0)
@@ -71,7 +72,7 @@ class Game():
                     if event.key == pg.K_RIGHT:
                         self.movement[1] = True
                     if event.key == pg.K_UP:
-                        self.player.speed[1]= 3
+                        self.player.speed[1]= 5
                 if event.type == pg.KEYUP:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = False
@@ -81,5 +82,5 @@ class Game():
             self.clock.tick(60)  # limits FPS to 60
 
 
-g=Game()
+g=Game(1366,768)
 g.run()

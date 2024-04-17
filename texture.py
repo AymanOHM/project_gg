@@ -8,6 +8,12 @@ class Texture:
         
         self.img = img
         self.id = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D,self.id)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)  # GL_MIRRORED_REPEAT , GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+   
 
     def bind(self):
         glBindTexture(GL_TEXTURE_2D,self.id)
@@ -22,8 +28,8 @@ class Texture:
     def draw(self, left,right,top,bot):
         self.bind()
         glBegin(GL_QUADS)
-        glTexCoord2f(0, 1); glVertex2f(left, top) 
         glTexCoord2f(0, 0); glVertex2f(left, bot)
+        glTexCoord2f(0, 1); glVertex2f(left, top) 
         glTexCoord2f(1, 1); glVertex2f(right, top)
         glTexCoord2f(1, 0); glVertex2f(right, bot)
         glEnd() 

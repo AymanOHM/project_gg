@@ -7,7 +7,7 @@ from texture import *
 
 class entity:
     
-    def __init__(self, game, path, pos, size=[50,50], speed=[0,0]):
+    def __init__(self, game, path, pos, size=[50,50], speed=[3,0]):
         
         self.pos = list(pos)
         self.size   = size   #array
@@ -33,7 +33,7 @@ class entity:
         #resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
         
-        mov_amount = (movement[0] + self.speed[0], movement[1] + self.speed[1])
+        mov_amount = (movement[0] + movement[0]*self.speed[0], movement[1] + self.speed[1])
         
         self.pos[0] += mov_amount[0]
         entity_rect = self.rect()
@@ -59,7 +59,7 @@ class entity:
                     entity_rect.top = rect.bottom
                 self.pos[1] = entity_rect.y
         
-        self.speed[1] = min(5, self.speed[1] - 0.1)
+        self.speed[1] = min(5, self.speed[1] - 0.2)
         
         if self.collisions['down'] or self.collisions['up']:
             self.speed[1] = 0

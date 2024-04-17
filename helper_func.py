@@ -6,7 +6,7 @@ BASE_IMG_PATH = 'data/images/'
 
 def load_image(path):
     temp = pg.image.load(BASE_IMG_PATH + path)
-    img =   pg.image.tobytes(temp,"RGBA",True)
+    img =   pg.image.tobytes(temp,"RGBA",False)
 
     return [img,temp.get_width(),temp.get_height()]
 
