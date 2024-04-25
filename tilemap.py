@@ -13,8 +13,10 @@ class Tilemap:
         self.tex= Texture(0)
         
         for i in range(10):
-            self.tilemap[str(6 + i) + ';8'] = {'type': 'grass', 'variant': 1, 'pos': (6 + i, 8)}
-            self.tilemap['13;' + str(3 + i)] = {'type': 'stone', 'variant': 1, 'pos': (13, 3 + i)}
+            self.tilemap[str(6 + i) + ';4'] = {'type': 'grass', 'variant': 1, 'pos': (6 + i, 4)}
+            
+            self.tilemap['10;' + str(7 + i)] = {'type': 'stone', 'variant': 1, 'pos': (10, 7 + i)}
+            self.tilemap['6;' + str(4 + i)] = {'type': 'stone', 'variant': 1, 'pos': (6, 4 + i)}
     
     def tiles_around(self, pos):
         tiles = []
