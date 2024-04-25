@@ -43,7 +43,7 @@ class Game():
             'player': self.player_image
         }
 
-        self.player = entity(self, 'player', (400, 400), (35, 55))
+        self.player = player(self, 'player', (400, 400), (35, 55))
 
         self.tilemap = Tilemap(game=self, player_direction=self.flip, tile_size=45)
 
