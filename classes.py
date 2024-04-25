@@ -8,19 +8,18 @@ from texture import *
 
 class entity:
 
-    def __init__(self, game, path, pos, size=[50,50], speed=[3,0]):
+    def __init__(self, game, path, pos, size=[50, 50], speed=[3, 0]):
 
         self.pos = list(pos)
-        self.size   = size   #array
+        self.size = size   # array
 
-        #texture
-        self.path = path
-        self.tex = Texture(game.assets['player'])
+        # texture
+        self.path = path  # It is a string == 'player'
+        self.tex = Texture(game.assets['player'])  # It is the path of the player frame
 
-
-        ## Entity transformation ##
-        #movement will be passed from update
-        self.speed = speed  #array
+        # -- Entity transformation -- #
+        # movement will be passed from update
+        self.speed = speed  # array
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
 
     def rect(self):
@@ -29,10 +28,11 @@ class entity:
     # the rect method does update param this for us, all we need is to chang pos now
 
     def move(self, map, movement):
+
         # resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
 
-        mov_amount = (movement[0] + movement[0]*self.speed[0], movement[1] + self.speed[1])
+        mov_amount = (movement[0]*self.speed[0], movement[1] + self.speed[1])
 
         self.pos[0] += mov_amount[0]
         entity_rect = self.rect()
@@ -68,6 +68,6 @@ class entity:
 
     def draw(self, player_direction):
         rect = self.rect()
-        self.tex.draw(rect.left,rect.right,rect.top,rect.bottom, player_direction)
+        self.tex.draw(rect.left, rect.right, rect.top, rect.bottom, player_direction)
       
 
