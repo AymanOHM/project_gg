@@ -4,11 +4,13 @@ import pygame as pg
 
 BASE_IMG_PATH = 'data/images/'
 
+
 def load_image(path):
     temp = pg.image.load(BASE_IMG_PATH + path)
-    img =   pg.image.tobytes(temp,"RGBA",False)
+    img =  pg.image.tobytes(temp, "RGBA", False)
 
-    return [img,temp.get_width(),temp.get_height()]
+    return [img, temp.get_width(), temp.get_height()]
+
 
 def load_images(path):
     images = []
