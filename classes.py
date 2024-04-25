@@ -12,8 +12,7 @@ class entity:
 
         self.pos = list(pos)
 
-        self.size  = list(size)
-
+        self.size   = list(size)   
         
         #texture
         self.path = path
@@ -21,8 +20,7 @@ class entity:
         
         
         ## Entity transformation ##
-
-        # movement will be passed from update
+        #movement will be passed from update
         self.speed = list(speed)  #array
 
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
@@ -37,9 +35,7 @@ class entity:
         #resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
         
-
         mov_amount = (movement[0]*self.speed[0], movement[1] + self.speed[1])
-
         
         self.pos[0] += mov_amount[0]
         entity_rect = self.rect()
@@ -78,8 +74,8 @@ class entity:
 
     def draw(self, player_direction):
         rect = self.rect()
+        self.tex.draw(rect.left, rect.right, rect.top, rect.bottom, player_direction)
 
-        self.tex.draw(rect.left,rect.right,rect.top,rect.bottom)
 
 class player(entity):
     
@@ -110,7 +106,6 @@ class player(entity):
     def move(self, map, movement: bool):
         # resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
-
 
         mov_amount = (movement[0] + movement[0] * self.speed[0], movement[1] + self.speed[1])
         
