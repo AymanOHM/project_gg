@@ -21,16 +21,16 @@ class Texture:
     def bind(self):
         glBindTexture(GL_TEXTURE_2D,self.id)
         glTexImage2D(GL_TEXTURE_2D,
-            0,  # mipmap
-            GL_RGBA,  # for blinding
+            0,  
+            GL_RGBA,  
             self.img[1], self.img[2],
-            0,  # Texture border
-            GL_RGBA, GL_UNSIGNED_BYTE, self.img[0])  # texture init step [7]
+            0, 
+            GL_RGBA, GL_UNSIGNED_BYTE, self.img[0])
 
-    def draw(self, left, right, top, bot, player_direction):
+    def draw(self, left, right, top, bot, direction=True):
         self.bind()
         glBegin(GL_QUADS)
-        if not player_direction:
+        if not direction:
             glTexCoord2f(0, 0); glVertex2f(left, bot)
             glTexCoord2f(0, 1); glVertex2f(left, top)
             glTexCoord2f(1, 1); glVertex2f(right, top)
