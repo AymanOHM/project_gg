@@ -133,8 +133,7 @@ class player(entity):
                 self.pos[0] = entity_rect.x
         
         # Change vertical position
-        self.pos[1] += mov_amount[1] -  self.flags['friction'] * ( mov_amount[1] // 2 )
-        self.flags['friction'] = False
+        self.pos[1] += mov_amount[1]
         
         # Check Vertical collision
         entity_rect = self.rect()
@@ -165,7 +164,13 @@ class player(entity):
                     
                 self.pos[1] = entity_rect.y
         
-        self.speed[1] = min(5, self.speed[1] - self.gravity)
+        if self.speed[1] < 0 and self.flags['friction']:
+            gravity_effect =  self.gravity / 2
+        else:
+            gravity_effect = self.gravity
+        
+        self.speed[1] = max(-10, self.speed[1] - gravity_effect )
+        self.flags['friction'] = False
         
         
     def jump(self):
