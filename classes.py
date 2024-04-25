@@ -10,7 +10,7 @@ class entity:
     def __init__(self, game, path, pos, size=[50,50], speed=[3,0]):
         
         self.pos = list(pos)
-        self.size   = size   #array
+        self.size   = list(size)   
         
         #texture
         self.path = path
@@ -19,7 +19,7 @@ class entity:
         
         ## Entity transformation ##
         #movement will be passed from update
-        self.speed = speed  #array
+        self.speed = list(speed)  #array
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
         
         
@@ -33,7 +33,7 @@ class entity:
         #resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
         
-        mov_amount = (movement[0] + movement[0]*self.speed[0], movement[1] + self.speed[1])
+        mov_amount = (movement[0]*self.speed[0], movement[1] + self.speed[1])
         
         self.pos[0] += mov_amount[0]
         entity_rect = self.rect()
