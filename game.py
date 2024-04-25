@@ -1,5 +1,6 @@
 import pygame as pg
 from OpenGL.GL import *
+from OpenGL.GLU import *
 import sys
 from classes import *
 from helper_func import *
@@ -34,7 +35,7 @@ class Game():
         #pg init
         pg.init()
         pg.display.set_caption("gg")
-        self.screen = pg.display.set_mode((w, h), flags=pg.OPENGL | pg.DOUBLEBUF)
+        self.display = pg.display.set_mode((w, h), flags=pg.OPENGL | pg.DOUBLEBUF)
         self.clock = pg.time.Clock()
         self.assets = {
             'decor': load_images('tiles/decor'),
@@ -45,6 +46,8 @@ class Game():
             'clouds': load_images('clouds')
         }
 
+        self.scroll=[0,0]
+        
         self.clouds = Clouds(self.assets['clouds'], count=16)
         
         self.player = player(self, 'player', (400, 400), (35, 55))
@@ -68,7 +71,10 @@ class Game():
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glLoadIdentity()
-        # glRotate(theta,0,0,1)
+        
+        scroll=self.scroll
+        glTranslate(-scroll[0],-scroll[1],0)
+        # glRotate(30,0,0,1)
         # glColor3b(52, 73, 102)
         self.clouds.update()
         self.clouds.render()
@@ -78,6 +84,9 @@ class Game():
         self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
         self.player.updating_tex(self)  # Updating tex for each animation_frame.
         self.player.draw(self.flip)
+        
+        
+        
         pg.display.flip()
 
 
@@ -119,7 +128,6 @@ class Game():
 
         while True:
         # glutMainLoop() or pg loop in this case
-
             
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -144,6 +152,9 @@ class Game():
                         self.movement[0] = False
                     if event.key == pg.K_RIGHT:
                         self.movement[1] = False
+                        
+            self.scroll[0] += int((self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) /30)
+            self.scroll[1] += int((self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1])/30)
 
             self.update_player_animation()
             self.draw()

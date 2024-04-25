@@ -22,7 +22,7 @@ class Clouds:
         self.clouds = []
         
         for i in range(count):
-            self.clouds.append(Cloud((random.random() * 999, random.random() * 999), random.choice(cloud_images), random.random() * 0.05 + 0.05, random.random() * 0.6 + 0.2))
+            self.clouds.append(Cloud((random.random() * 1999, random.random() * 1999), random.choice(cloud_images), random.random() * 0.05 + 0.05, random.random() * 0.6 + 0.2))
         
         self.clouds.sort(key=lambda x: x.depth)
     
