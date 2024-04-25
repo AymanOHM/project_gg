@@ -43,6 +43,7 @@ class Game():
             'player': self.player_image
         }
 
+
         self.player = player(self, 'player', (400, 400), (35, 55))
 
         self.tilemap = Tilemap(game=self, player_direction=self.flip, tile_size=45)
@@ -71,6 +72,7 @@ class Game():
         self.player.updating_tex(self)  # Updating tex for each animation_frame.
         self.player.draw(self.flip)
         pg.display.flip()
+
 
 
     def update_player_animation(self):
@@ -104,6 +106,7 @@ class Game():
             # Repeating the animation.
             if self.animation_run_index >= len(self.animation_run_list):
                 self.animation_run_index = 0
+
 
 
 
