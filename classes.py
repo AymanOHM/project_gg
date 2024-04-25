@@ -79,7 +79,7 @@ class entity:
     def draw(self, player_direction):
         rect = self.rect()
 
-        self.tex.draw(rect.left,rect.right,rect.top,rect.bottom)
+        self.tex.draw(rect.left,rect.right,rect.top,rect.bottom, player_direction)
 
 class player(entity):
     
