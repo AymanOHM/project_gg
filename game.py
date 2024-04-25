@@ -29,6 +29,7 @@ class Game():
 
         self.w=w
         self.h=h
+        self.environment = {'gravity': 0.2}
         #pg init
         pg.init()
         pg.display.set_caption("gg")
@@ -47,6 +48,7 @@ class Game():
         self.tilemap = Tilemap(game=self, player_direction=self.flip, tile_size=45)
 
         # OpenGL init
+
         glClearColor(0.2,0.3,0.3,1.0)
 
         glMatrixMode(GL_PROJECTION)
@@ -104,17 +106,19 @@ class Game():
                 self.animation_run_index = 0
 
 
+
     def run(self):
 
         while True:
         # glutMainLoop() or pg loop in this case
 
-
-
+            
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
-                    sys.exit()
+                    sys.exit() 
+                    
+
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = True
@@ -125,7 +129,8 @@ class Game():
                         self.direction = 1
                         self.flip = False
                     if event.key == pg.K_UP:
-                        self.player.speed[1] = 5
+                        self.player.jump()
+                        
                 if event.type == pg.KEYUP:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = False
