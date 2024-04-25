@@ -42,14 +42,6 @@ class Game():
             'stone': load_images('tiles/stone'),
             'player': self.player_image
         }
-<<<<<<< HEAD
-        
-        self.player = player(self, 'player', (400, 400), (23, 45))
-        
-        self.tilemap = Tilemap(self, 45)
-        
-        #OpenGL init
-=======
 
         self.player = player(self, 'player', (400, 400), (35, 55))
 
@@ -57,7 +49,6 @@ class Game():
 
         # OpenGL init
 
->>>>>>> upstream/feature_testing
         glClearColor(0.2,0.3,0.3,1.0)
 
         glMatrixMode(GL_PROJECTION)
@@ -81,8 +72,6 @@ class Game():
         self.player.draw(self.flip)
         pg.display.flip()
 
-<<<<<<< HEAD
-=======
 
     def update_player_animation(self):
         # Setting the time of the animation until the next one.
@@ -117,26 +106,19 @@ class Game():
                 self.animation_run_index = 0
 
 
->>>>>>> upstream/feature_testing
 
     def run(self):
 
         while True:
         # glutMainLoop() or pg loop in this case
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/feature_testing
             
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit() 
                     
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream/feature_testing
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = True
