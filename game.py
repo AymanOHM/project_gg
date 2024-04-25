@@ -4,6 +4,7 @@ import sys
 from classes import *
 from helper_func import *
 from tilemap import *
+from clouds import *
 
 class Game():
     def __init__(self, w=800, h=600):
@@ -40,16 +41,19 @@ class Game():
             'grass': load_images('tiles/grass'),
             'large_decor': load_images('tiles/large_decor'),
             'stone': load_images('tiles/stone'),
-            'player': self.player_image
+            'player': self.player_image,
+            'clouds': load_images('clouds')
         }
 
+        self.clouds = Clouds(self.assets['clouds'], count=16)
+        
         self.player = player(self, 'player', (400, 400), (35, 55))
 
         self.tilemap = Tilemap(game=self, player_direction=self.flip, tile_size=45)
 
         # OpenGL init
 
-        glClearColor(0.2,0.3,0.3,1.0)
+        glClearColor(72/255,160/255,211/255,1.0)
 
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
@@ -58,6 +62,7 @@ class Game():
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         glEnable(GL_TEXTURE_2D)
+        glEnable(GL_BLEND)
 
     def draw(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -65,6 +70,9 @@ class Game():
         glLoadIdentity()
         # glRotate(theta,0,0,1)
         # glColor3b(52, 73, 102)
+        self.clouds.update()
+        self.clouds.render()
+        
         self.tilemap.render()
 
         self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
