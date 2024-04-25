@@ -11,6 +11,7 @@ class Game():
         
         self.w=w
         self.h=h
+        self.environment = {'gravity': 0.2}
         #pg init
         pg.init()
         pg.display.set_caption("gg")
@@ -24,7 +25,7 @@ class Game():
             'player': load_image('entities/player.png')
         }
         
-        self.player = entity(self, 'player', (400, 400), (23, 45))
+        self.player = player(self, 'player', (400, 400), (23, 45))
         
         self.tilemap = Tilemap(self, 45)
         
@@ -50,29 +51,26 @@ class Game():
         self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
         self.player.draw()
         pg.display.flip()
-     
+
 
     def run(self):
         
         while True:
         # glutMainLoop() or pg loop in this case
             
-            
-           
-           
-            
-            
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
-                    sys.exit()  
+                    sys.exit() 
+                    
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = True
                     if event.key == pg.K_RIGHT:
                         self.movement[1] = True
                     if event.key == pg.K_UP:
-                        self.player.speed[1]= 5
+                        self.player.jump()
+                        
                 if event.type == pg.KEYUP:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = False
