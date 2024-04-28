@@ -165,7 +165,7 @@ class player(entity):
                     
                 self.pos[1] = entity_rect.y
         
-        self.speed[1] = min(5, self.speed[1] - self.gravity)
+        self.speed[1] = max(-20, self.speed[1] - self.gravity)
         
         
     def jump(self):
