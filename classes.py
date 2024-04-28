@@ -11,7 +11,9 @@ class entity:
     def __init__(self, game, path, pos, size=[50, 50], speed=[3, 0]):
 
         self.pos = list(pos)
-
+        self.game=game
+        self.environment = game.environment
+        self.gravity = self.environment['gravity']
         self.size   = list(size)   
         
         #texture
@@ -25,11 +27,19 @@ class entity:
 
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
 
+        self.action = ''
+        self.flip = False
+        self.set_action('idle')
+
     def rect(self):
         return pg.Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
     
     #the rect method does update param this for us, all we need is to chang pos now    
 
+    def set_action(self, action):
+        if action != self.action:
+            self.action = action
+            self.animation = self.game.assets[self.path + '/' + self.action].copy()
           
     def move(self, map, movement: bool):
         #resetting collisions every movement
@@ -63,45 +73,39 @@ class entity:
                     self.collisions['down'] = True
                     entity_rect.top = rect.bottom
                 self.pos[1] = entity_rect.y
+                
+        if movement[0] > 0:
+            self.flip = False
+        if movement[0] < 0:
+            self.flip = True
 
         self.speed[1] = min(5, self.speed[1] - 0.2)
 
         if self.collisions['down'] or self.collisions['up']:
             self.speed[1] = 0
 
-    def updating_tex(self, game):
-        self.tex = Texture(game.assets['player'])
+        self.animation.update()
+        
+        
+    def updating_tex(self):
+        self.tex = Texture(self.animation.img())
 
-    def draw(self, player_direction):
+    def draw(self):
         rect = self.rect()
-        self.tex.draw(rect.left, rect.right, rect.top, rect.bottom, player_direction)
+        self.updating_tex()
+        self.tex.draw(rect.left, rect.right, rect.top, rect.bottom, self.flip)
 
 
 class player(entity):
     
-    def __init__(self, game, path, pos, size=[50,50], speed=[3,0]):
-        
-        self.environment = game.environment
-
-        self.gravity = self.environment['gravity']
-        
-        self.pos = list(pos)
-        self.size  = list(size)
+    def __init__(self, game, pos, size=[50,50], speed=[3,0]):
+        super().__init__(game,'player',pos,size,speed)
         
         self.flags = {'air_jump': False,
                       'last_wall_jump': {'right': False, 'left': False},
                       'friction': False
                       }
-        
-        #texture
-        self.path = path
-        self.tex = Texture(game.assets['player'])
-        
-        
-        ## Entity transformation ##
-        # movement will be passed from update
-        self.speed = list(speed)  #array
-        self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
+        self.air_time=0
     
     def move(self, map, movement: bool):
         # resetting collisions every movement
@@ -171,6 +175,23 @@ class player(entity):
         
         self.speed[1] = max(-10, self.speed[1] - gravity_effect )
         self.flags['friction'] = False
+        
+        if movement[0] > 0:
+            self.flip = False
+        if movement[0] < 0:
+            self.flip = True
+        
+        self.animation.update()
+        self.air_time += 1
+        if self.collisions['down']:
+            self.air_time = 0
+            
+        if self.air_time > 4:
+            self.set_action('jump')
+        elif movement[0] != 0:
+            self.set_action('run')
+        else:
+            self.set_action('idle')
         
         
     def jump(self):

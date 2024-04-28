@@ -40,8 +40,21 @@ class Game():
         self.player = player(self, (600, 400), (35, 55))
 
         self.tilemap = Tilemap(game=self, tile_size=45)
-        self.tilemap.load('map.json')
-
+        
+        try:
+            self.tilemap.load('map.json')
+        except FileNotFoundError:
+            pass
+        
+        self.tile_list = list(self.assets)
+        self.tile_group = 0
+        self.tile_variant = 0
+        
+        self.clicking = False
+        self.right_clicking = False
+        self.shift = False
+        self.ongrid = True
+        
         # OpenGL init
 
         glClearColor(72/255,160/255,211/255,1.0)
@@ -64,14 +77,10 @@ class Game():
         glTranslate(-scroll[0],-scroll[1],0)
         # glRotate(30,0,0,1)
         # glColor3b(52, 73, 102)
-        self.clouds.update()
-        self.clouds.render()
         
         self.tilemap.render()
-
-        self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
-        self.player.draw()
         
+        current_tile_img = self.assets[self.tile_list[self.tile_group]][self.tile_variant][0].copy()
         
         
         pg.display.flip()
