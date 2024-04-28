@@ -168,9 +168,6 @@ class player(entity):
                     
                 self.pos[1] = entity_rect.y
         
-<<<<<<< HEAD
-        self.speed[1] = max(-20, self.speed[1] - self.gravity)
-=======
         if self.speed[1] < 0 and self.flags['friction']:
             gravity_effect =  self.gravity / 2
         else:
@@ -195,7 +192,6 @@ class player(entity):
             self.set_action('run')
         else:
             self.set_action('idle')
->>>>>>> main
         
         
     def jump(self):
