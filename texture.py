@@ -4,11 +4,14 @@ from helper_func import *
 
 
 class Texture:
-    def __init__(self,img):
-        
+    def __init__(self, img):
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)  # FOR BLENDING
+
         self.img = img
         self.id = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D,self.id)
+        glBindTexture(GL_TEXTURE_2D, self.id)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)  # GL_MIRRORED_REPEAT , GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
@@ -18,18 +21,23 @@ class Texture:
     def bind(self):
         glBindTexture(GL_TEXTURE_2D,self.id)
         glTexImage2D(GL_TEXTURE_2D,
-            0,  # mipmap
-            3,  # Bytes per pixel
+            0,  
+            GL_RGBA,  
             self.img[1], self.img[2],
-            0,  # Texture border
-            GL_RGBA, GL_UNSIGNED_BYTE, self.img[0]) # texture init step [7]
+            0, 
+            GL_RGBA, GL_UNSIGNED_BYTE, self.img[0])
 
-    
-    def draw(self, left,right,top,bot):
+    def draw(self, left, right, top, bot, direction=True):
         self.bind()
         glBegin(GL_QUADS)
-        glTexCoord2f(0, 0); glVertex2f(left, bot)
-        glTexCoord2f(0, 1); glVertex2f(left, top) 
-        glTexCoord2f(1, 1); glVertex2f(right, top)
-        glTexCoord2f(1, 0); glVertex2f(right, bot)
-        glEnd() 
+        if not direction:
+            glTexCoord2f(0, 0); glVertex2f(left, bot)
+            glTexCoord2f(0, 1); glVertex2f(left, top)
+            glTexCoord2f(1, 1); glVertex2f(right, top)
+            glTexCoord2f(1, 0); glVertex2f(right, bot)
+        else:
+            glTexCoord2f(1, 0); glVertex2f(left, bot)
+            glTexCoord2f(1, 1); glVertex2f(left, top)
+            glTexCoord2f(0, 1); glVertex2f(right, top)
+            glTexCoord2f(0, 0); glVertex2f(right, bot)
+        glEnd()

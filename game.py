@@ -1,60 +1,131 @@
 import pygame as pg
 from OpenGL.GL import *
+from OpenGL.GLU import *
 import sys
 from classes import *
 from helper_func import *
 from tilemap import *
+from clouds import *
 
 class Game():
-    def __init__(self, w=800,h=600):
-        self.movement=[False,False]
-        
+    def __init__(self, w=800, h=600):
+        self.movement = [False, False]
+
+        self.direction = 1
+        self.flip = False
+
+        self.animation_idle_list = []
+        self.animation_idle_index = 0
+        for i in range(22):
+            img = load_image(f'entities/player/idle/{i}.png')
+            self.animation_idle_list.append(img)
+        self.player_image = self.animation_idle_list[self.animation_idle_index]
+
+        self.animation_run_list = []
+        self.animation_run_index = 0
+        for i in range(8):
+            img = load_image(f'entities/player/run_/{i}.png')
+            self.animation_run_list.append(img)
+
+        self.time = pg.time.get_ticks()
+
         self.w=w
         self.h=h
         self.environment = {'gravity': 0.2}
         #pg init
         pg.init()
         pg.display.set_caption("gg")
-        self.screen=pg.display.set_mode((w,h),flags= pg.OPENGL | pg.DOUBLEBUF)
-        self.clock=pg.time.Clock()
+        self.display = pg.display.set_mode((w, h), flags=pg.OPENGL | pg.DOUBLEBUF)
+        self.clock = pg.time.Clock()
         self.assets = {
             'decor': load_images('tiles/decor'),
             'grass': load_images('tiles/grass'),
             'large_decor': load_images('tiles/large_decor'),
             'stone': load_images('tiles/stone'),
-            'player': load_image('entities/player.png')
+            'player': self.player_image,
+            'clouds': load_images('clouds')
         }
+
+        self.scroll=[0,0]
         
-        self.player = player(self, 'player', (400, 400), (23, 45))
+        self.clouds = Clouds(self.assets['clouds'], count=16)
         
-        self.tilemap = Tilemap(self, 45)
-        
-        #OpenGL init
-        glClearColor(0.2,0.3,0.3,1.0)
-    
+        self.player = player(self, 'player', (400, 400), (35, 55))
+
+        self.tilemap = Tilemap(game=self, player_direction=self.flip, tile_size=45)
+
+        # OpenGL init
+
+        glClearColor(72/255,160/255,211/255,1.0)
+
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glOrtho(0, w, 0, h, -1, 1)
-        #gluPerspective(120,w/h,0.1,100)   #default is ortho unit cube
+        # gluPerspective(120,w/h,0.1,100)   #default is ortho unit cube
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         glEnable(GL_TEXTURE_2D)
-    
+        glEnable(GL_BLEND)
+
     def draw(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    
+
         glLoadIdentity()
-        # glRotate(theta,0,0,1)
+        
+        scroll=self.scroll
+        glTranslate(-scroll[0],-scroll[1],0)
+        # glRotate(30,0,0,1)
         # glColor3b(52, 73, 102)
+        self.clouds.update()
+        self.clouds.render()
+        
         self.tilemap.render()
-            
+
         self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
-        self.player.draw()
+        self.player.updating_tex(self)  # Updating tex for each animation_frame.
+        self.player.draw(self.flip)
+        
+        
+        
         pg.display.flip()
 
 
+    def update_player_animation(self):
+        # Setting the time of the animation until the next one.
+        # The animation at idle.
+        animation_time = 100
+        if self.movement == [False, False]:
+            # Updating the animation.
+            self.player_image = self.animation_idle_list[self.animation_idle_index]
+            self.assets['player'] = self.player_image
+
+            # Checking the time
+            if pg.time.get_ticks() - self.time > animation_time:
+                self.time = pg.time.get_ticks()
+                self.animation_idle_index += 1
+
+            # Repeating the animation.
+            if self.animation_idle_index >= len(self.animation_idle_list):
+                self.animation_idle_index = 0
+        # The animation when running.
+        else:
+            # Updating the animation.
+            self.player_image = self.animation_run_list[self.animation_run_index]
+            self.assets['player'] = self.player_image
+
+            # Checking the time
+            if pg.time.get_ticks() - self.time > animation_time:
+                self.time = pg.time.get_ticks()
+                self.animation_run_index += 1
+
+            # Repeating the animation.
+            if self.animation_run_index >= len(self.animation_run_list):
+                self.animation_run_index = 0
+
+
+
     def run(self):
-        
+
         while True:
         # glutMainLoop() or pg loop in this case
             
@@ -63,11 +134,16 @@ class Game():
                     pg.quit()
                     sys.exit() 
                     
+
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_LEFT:
                         self.movement[0] = True
+                        self.direction = -1
+                        self.flip = True
                     if event.key == pg.K_RIGHT:
                         self.movement[1] = True
+                        self.direction = 1
+                        self.flip = False
                     if event.key == pg.K_UP:
                         self.player.jump()
                         
@@ -75,10 +151,15 @@ class Game():
                     if event.key == pg.K_LEFT:
                         self.movement[0] = False
                     if event.key == pg.K_RIGHT:
-                        self.movement[1] = False     
+                        self.movement[1] = False
+                        
+            self.scroll[0] += int((self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) /30)
+            self.scroll[1] += int((self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1])/30)
+
+            self.update_player_animation()
             self.draw()
             self.clock.tick(60)  # limits FPS to 60
 
 
-g=Game(1366,768)
+g = Game(1366, 768)
 g.run()
