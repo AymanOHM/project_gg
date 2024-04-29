@@ -2,8 +2,8 @@ from PIL import Image
 import os
 
 
-output_directory = "data/images/entities/player/run_"
-input_directory = "data/images/entities/player/run"
+output_directory = "data/images/tiles/large_decor/"
+input_directory = "data/images/tiles/large_decor/"
 for i in range(len(input_directory) - 1):
     # Open the image
     image = Image.open(f'{input_directory}/{i}.png')

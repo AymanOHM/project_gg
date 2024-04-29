@@ -168,7 +168,30 @@ class player(entity):
                     
                 self.pos[1] = entity_rect.y
         
-        self.speed[1] = max(-20, self.speed[1] - self.gravity)
+        if self.speed[1] < 0 and self.flags['friction']:
+            gravity_effect =  self.gravity / 2
+        else:
+            gravity_effect = self.gravity
+        
+        self.speed[1] = max(-10, self.speed[1] - gravity_effect )
+        self.flags['friction'] = False
+        
+        if movement[0] > 0:
+            self.flip = False
+        if movement[0] < 0:
+            self.flip = True
+        
+        self.animation.update()
+        self.air_time += 1
+        if self.collisions['down']:
+            self.air_time = 0
+            
+        if self.air_time > 4:
+            self.set_action('jump')
+        elif movement[0] != 0:
+            self.set_action('run')
+        else:
+            self.set_action('idle')
         
         
     def jump(self):

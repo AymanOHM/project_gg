@@ -37,7 +37,7 @@ class Game():
         
         self.clouds = Clouds(self.assets['clouds'], count=16)
         
-        self.player = player(self, (600, 400), (35, 55))
+        self.player = player(self, (750, 600), (35, 55))
 
         self.tilemap = Tilemap(game=self, tile_size=45)
         self.tilemap.load('map.json')
