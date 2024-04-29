@@ -40,7 +40,7 @@ class entity:
         if action != self.action:
             self.action = action
             self.animation = self.game.assets[self.path + '/' + self.action].copy()
-          
+        
     def move(self, map, movement: bool):
         #resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
@@ -98,7 +98,7 @@ class entity:
 
 class player(entity):
     
-    def __init__(self, game, pos, size=[50,50], speed=[3,0]):
+    def __init__(self, game, pos, size=[50,50], speed=[5,0]):
         super().__init__(game,'player',pos,size,speed)
         
         self.flags = {'air_jump': False,
@@ -106,44 +106,52 @@ class player(entity):
                       'friction': False
                       }
         self.air_time=0
+        self.mov_amount = [0,0]
     
-    def move(self, map, movement: bool):
+    def move(self, map, direction: bool):
+        
+        self.update_mov_amount(direction)
+        
         # resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
 
-        mov_amount = (movement[0] + movement[0] * self.speed[0], movement[1] + self.speed[1])
         
         ## Check Collisions ##
         
         # Change horizontal position
-        self.pos[0] += mov_amount[0]
+        self.pos[0] += self.mov_amount[0]
         
         # Check horizontal collision
         entity_rect = self.rect()
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
-                if mov_amount[0] > 0:
+                
+                # From Right
+                if self.mov_amount[0] > 0:
                     # Edit Flags
                     self.collisions['right'] = True
                     self.flags['friction'] = True
+                    
                     entity_rect.right = rect.left
                     
-                if mov_amount[0] < 0:
+                # From Left
+                if self.mov_amount[0] < 0:
                     # Edit Flags
                     self.collisions['left'] = True
                     self.flags['friction'] = True
                         
                     entity_rect.left = rect.right
+                    
                 self.pos[0] = entity_rect.x
         
         # Change vertical position
-        self.pos[1] += mov_amount[1]
+        self.pos[1] += self.mov_amount[1]
         
         # Check Vertical collision
         entity_rect = self.rect()
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
-                if mov_amount[1] > 0:
+                if self.mov_amount[1] > 0:
                     # Stop the player
                     self.speed[1] = 0
                     
@@ -152,7 +160,7 @@ class player(entity):
                     
                     entity_rect.bottom = rect.top
                     
-                if mov_amount[1] < 0:
+                if self.mov_amount[1] < 0:
                     # Stop the player
                     self.speed[1] = 0
                     
@@ -163,6 +171,7 @@ class player(entity):
                     
                     self.flags['last_wall_jump']['right'] = False
                     self.flags['last_wall_jump']['left'] = False
+                    self.air_time = 0
                     
                     entity_rect.top = rect.bottom
                     
@@ -176,24 +185,36 @@ class player(entity):
         self.speed[1] = max(-10, self.speed[1] - gravity_effect )
         self.flags['friction'] = False
         
-        if movement[0] > 0:
+        if self.mov_amount[0] > 0:
             self.flip = False
-        if movement[0] < 0:
+        if self.mov_amount[0] < 0:
             self.flip = True
         
         self.animation.update()
         self.air_time += 1
-        if self.collisions['down']:
-            self.air_time = 0
+        
+        self.texture_update(direction)
+        
+        
+    def update_mov_amount(self, direction):
+        
+        if not any(self.collisions.values()) or any(self.flags['last_wall_jump'].values()):
             
-        if self.air_time > 4:
-            self.set_action('jump')
-        elif movement[0] != 0:
-            self.set_action('run')
+            air_dive_effect = self.speed[0] * direction[0] / 10
+            limit = self.speed[0]
+            
+            if self.mov_amount[0] > 0:
+                self.mov_amount[0] = min(limit, self.mov_amount[0] + air_dive_effect )
+                
+            else:
+                self.mov_amount[0] = max( -limit , self.mov_amount[0] + air_dive_effect )
+
+            self.mov_amount[1] = direction[1] + self.speed[1]
+
         else:
-            self.set_action('idle')
-        
-        
+            self.mov_amount = [direction[0] * self.speed[0], direction[1] + self.speed[1]]
+
+    
     def jump(self):
         ## Check Double Jump ##
         if not any( self.collisions.values() ) and self.flags['air_jump'] == True: # In the air
@@ -206,7 +227,7 @@ class player(entity):
         ## Check Wall Jump ##
             if self.collisions['right']:
                 if self.flags['last_wall_jump']['right'] == False: # Last jump wasn't from right
-                    self.do_jump_action()
+                    self.do_wall_jump_action(-1)
                     
                     self.flags['last_wall_jump']['right'] = True
                     self.flags['last_wall_jump']['left'] = False
@@ -214,12 +235,32 @@ class player(entity):
                     
             if self.collisions['left']:
                 if self.flags['last_wall_jump']['left'] == False: # Last jump wasn't from left
-                    self.do_jump_action()
+                    self.do_wall_jump_action(1)
                     
                     self.flags['last_wall_jump']['left'] = True
                     self.flags['last_wall_jump']['right'] = False
                     self.flags['air_jump'] = True
                     
         
+    
     def do_jump_action(self):
         self.speed[1]= 5
+    
+    def do_wall_jump_action(self, direction):
+        self.speed[1] = 5
+        self.mov_amount[0] = direction * self.speed[0]
+        
+    
+    
+    def texture_update(self, movement):
+        if self.air_time > 1:
+            if self.collisions['right'] or self.collisions['left'] :
+                self.set_action('wall_slide')
+            else:
+                self.set_action('jump')
+        elif movement[0] != 0:
+            self.set_action('run')
+        else:
+            self.set_action('idle')
+        
+    
