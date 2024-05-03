@@ -7,10 +7,15 @@ from helper_func import *
 from tilemap import *
 from clouds import *
 from bullet import *
+from gun_drawing import draw_player_gun, draw_enemy_gun
+from bullet_collision import player_bullet_collision, enemy_bullet_collision
 
 class Game():
     def __init__(self, w=800, h=600):
-        self.movement = [False, False]
+        self.is_alive = False
+
+        self.player_movement = [False, False]
+        self.enemy_movement = [False, False]
 
         self.w=w
         self.h=h
@@ -32,6 +37,8 @@ class Game():
             'player/jump': Animation(load_images('entities/player/jump')),
             'player/slide': Animation(load_images('entities/player/slide')),
             'player/wall_slide': Animation(load_images('entities/player/wall_slide')),
+            'enemy/idle': Animation(load_images('entities/enemy/idle'), img_dur=6),
+            'enemy/run': Animation(load_images('entities/enemy/run'), img_dur=4),
             'gun': load_image('_gun.png'),
             'bullet': load_image('bullet.png')
         }
@@ -40,15 +47,24 @@ class Game():
 
         self.clouds = Clouds(self.assets['clouds'], count=16)
 
-        self.player = player(self, (750, 600), (35, 55))
         self.gun = Texture(self.assets['gun'])
+
+        # Initializing the player character.
+        self.player = player(self, (750, 600), (35, 55))
         self.player_gun_direction = False
-        self.bullet_group = []
-        self.shoot = False
+
+        # Initializing the enemy character.
+        self.enemy = player(self, (80, 600), (35, 55))
+        self.enemy_gun_direction = False
+
+        self.bullet_group = Bullets(self.assets['bullet'])
+        self.enemy_bullet_group = Bullets(self.assets['bullet'])
+        self.player_shoot = False
+        self.enemy_shoot = False
         self.tilemap = Tilemap(game=self, tile_size=45)
         self.tilemap.load('map.json')
 
-        self.bullet = Bullets()
+        # self.bullet = Bullet()
 
 
         # OpenGL init
@@ -78,80 +94,128 @@ class Game():
 
         self.tilemap.render()
 
-        self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
+        # Drawing the player.
+        self.player.move(self.tilemap, [self.player_movement[1] - self.player_movement[0], 0])
         self.player.draw()
 
+        # Drawing the enemy.
+        self.enemy.move(self.tilemap, [self.enemy_movement[1] - self.enemy_movement[0], 0])
+        self.enemy.draw()
 
-
-        # Drawing the player gun.
-        if not self.player_gun_direction:
-            self.gun.draw(self.player.pos[0] + 20, self.player.pos[0] + 35,
-                          self.player.pos[1] + 15, self.player.pos[1] + 28, direction=False)
-            # Drawing the bullet at case of shooting and the player looks right.
-            if self.shoot:
-
-                self.bullet.new_bullet(self.player.rect().centerx + 17, self.player.rect().centery - 3,
-                self.player_gun_direction, self.assets['bullet'])
-            self.bullet.render()
-            self.bullet.update()
-
-
-
-        else:
-            self.gun.draw(self.player.pos[0], self.player.pos[0] + 15,
-                          self.player.pos[1] + 15, self.player.pos[1] + 28, direction=True)
-            # Drawing the bullet at case of shooting and the player looks left.
-            if self.shoot:
-                self.bullet.new_bullet(self.player.rect().centerx - 21, self.player.rect().centery - 3,
-                self.player_gun_direction, self.assets['bullet'])
-            self.bullet.render()
-            self.bullet.update()
-
-
-
-
+        # Setting the guns of the both the player and the enemy.
+        draw_player_gun(self, self.player, self.gun, self.player_gun_direction, self.bullet_group, self.player_shoot)
+        draw_enemy_gun(self, self.enemy, self.gun, self.enemy_gun_direction, self.enemy_bullet_group, self.enemy_shoot)
 
         pg.display.flip()
 
 
 
     def run(self):
-
+        time = pg.time.get_ticks()
         while True:
-        # glutMainLoop() or pg loop in this case
 
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    pg.quit()
-                    sys.exit()
+            # glutMainLoop() or pg loop in this case
+            if self.is_alive:
+
+                # I made this if statement to remove the bullets from the bullet_group
+                # each 2 seconds so that the game stills fast.
+                if pg.time.get_ticks() - time >= 2000:
+                    self.bullet_group.bullets = []
+                    self.enemy_bullet_group.bullets = []
+                    time = pg.time.get_ticks()
+                else:
+                    pass
+
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        pg.quit()
+                        sys.exit()
 
 
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_LEFT:
-                        self.movement[0] = True
-                        self.player_gun_direction = True
-                    if event.key == pg.K_RIGHT:
-                        self.movement[1] = True
-                        self.player_gun_direction = False
-                    if event.key == pg.K_UP:
-                        self.player.jump()
-                    if event.key == pg.K_m:
-                        self.shoot = True
+                    if event.type == pg.KEYDOWN:
+                        if event.key == pg.K_LEFT:
+                            self.player_movement[0] = True
+                            self.player_gun_direction = True
+                        if event.key == pg.K_RIGHT:
+                            self.player_movement[1] = True
+                            self.player_gun_direction = False
+                        if event.key == pg.K_UP:
+                            self.player.jump()
+                        if event.key == pg.K_m:
+                            self.player_shoot = True
 
-                if event.type == pg.KEYUP:
-                    if event.key == pg.K_LEFT:
-                        self.movement[0] = False
-                    if event.key == pg.K_RIGHT:
-                        self.movement[1] = False
-                    if event.key == pg.K_m:
-                        self.shoot = False
-                        # self.bullet.bullets = []
-                        
-            self.scroll[0] += int((self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) /30)
-            self.scroll[1] += int((self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1])/30)
+                        if event.key == pg.K_a:
+                            self.enemy_movement[0] = True
+                            self.enemy_gun_direction = True
+                        if event.key == pg.K_d:
+                            self.enemy_movement[1] = True
+                            self.enemy_gun_direction = False
+                        if event.key == pg.K_w:
+                            self.enemy.jump()
+                        if event.key == pg.K_x:
+                            self.enemy_shoot = True
 
-            self.draw()
-            self.clock.tick(60)  # limits FPS to 60
+
+                    if event.type == pg.KEYUP:
+                        if event.key == pg.K_LEFT:
+                            self.player_movement[0] = False
+                        if event.key == pg.K_RIGHT:
+                            self.player_movement[1] = False
+                        if event.key == pg.K_m:
+                            self.player_shoot = False
+
+                        if event.key == pg.K_a:
+                            self.enemy_movement[0] = False
+                        if event.key == pg.K_d:
+                            self.enemy_movement[1] = False
+                        if event.key == pg.K_x:
+                            self.enemy_shoot = False
+
+                self.scroll[0] += int(((self.player.rect().centerx + self.enemy.rect().centerx) // 2 - self.display.get_width() / 2 - self.scroll[0]) /30)
+                self.scroll[1] += int((self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1])/30)
+
+                # Detecting if the enemy or the player is killed.
+                # print(player_bullet_collision(self.player, self.bullet_group.get_bullets()))
+                if player_bullet_collision(self.player, self.enemy_bullet_group.get_bullets()):
+                    self.is_alive = False
+                    continue
+                if enemy_bullet_collision(self.enemy, self.bullet_group.get_bullets()):
+                    self.is_alive = False
+                    continue
+                # if not(player_bullet_collision(self.player, self.bullet_group.get_bullets())) or \
+                #         not(enemy_bullet_collision(self.enemy, self.bullet_group.get_bullets())):
+                #     self.is_alive = False
+
+                self.draw()
+                self.clock.tick(60)  # limits FPS to 60
+
+            else:
+                self.player = player(self, (750, 600), (35, 55))
+                self.player_gun_direction = False
+                self.enemy = player(self, (80, 600), (35, 55))
+                self.enemy_gun_direction = False
+
+                self.scroll[0] = int(((self.player.rect().centerx + self.enemy.rect().centerx) // 2 - self.display.get_width() / 2 - self.scroll[0]) /30)
+                self.scroll[1] = 1000
+
+                # I will ask the user to press enter to start playing.
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        pg.quit()
+                        sys.exit()
+
+                    if event.type == pg.KEYDOWN:
+                        if event.key == pg.K_RETURN:
+                            self.is_alive = True
+
+
+                    if event.type == pg.KEYUP:
+                        if event.key == pg.K_RETURN:
+                            self.is_alive = False
+
+                self.draw()
+                self.clock.tick(60)  # limits FPS to 60
+
 
 
 g = Game(1366, 768)

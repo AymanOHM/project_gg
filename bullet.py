@@ -11,11 +11,12 @@ class Bullet:
         self.direction = direction
         self.img = img
         self.tex = Texture(self.img)
+        self.rect = ''
 
     def render(self):
 
-        bullet_rect = pg.Rect(self.x, self.y, 5, 5)
-        self.tex.draw(bullet_rect.left, bullet_rect.right, bullet_rect.top, bullet_rect.bottom, self.direction)
+        self.rect = pg.Rect(self.x, self.y, 5, 5)
+        self.tex.draw(self.rect.left, self.rect.right, self.rect.top, self.rect.bottom, self.direction)
 
     def update(self):
         if self.direction == False:
@@ -25,11 +26,12 @@ class Bullet:
 
 
 class Bullets:
-    def __init__(self):
+    def __init__(self, img):
         self.bullets = []
+        self.img = img
 
-    def new_bullet(self, x, y, direction, img):
-        self.bullets.append(Bullet(x, y, direction, img))
+    def new_bullet(self,  x, y, direction):
+        self.bullets.append(Bullet(x, y, direction, self.img))
 
     def render(self):
         for bullet in self.bullets:
@@ -38,4 +40,7 @@ class Bullets:
     def update(self):
         for bullet in self.bullets:
             bullet.update()
+
+    def get_bullets(self):
+        return self.bullets
 
