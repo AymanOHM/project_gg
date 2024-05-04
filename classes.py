@@ -200,7 +200,7 @@ class player(entity):
         
         if not any(self.collisions.values()) or any(self.flags['last_wall_jump'].values()):
             
-            air_dive_effect = self.speed[0] * direction[0] / 10
+            air_dive_effect = direction[0]  * self.speed[0] / 10
             limit = self.speed[0]
             
             if self.mov_amount[0] > 0:
@@ -226,20 +226,18 @@ class player(entity):
                 
         ## Check Wall Jump ##
             if self.collisions['right']:
-                if self.flags['last_wall_jump']['right'] == False: # Last jump wasn't from right
-                    self.do_wall_jump_action(-1)
-                    
-                    self.flags['last_wall_jump']['right'] = True
-                    self.flags['last_wall_jump']['left'] = False
-                    self.flags['air_jump'] = True
+                self.do_wall_jump_action(-1)
+                
+                self.flags['last_wall_jump']['right'] = True
+                self.flags['last_wall_jump']['left'] = False
+                self.flags['air_jump'] = True
                     
             if self.collisions['left']:
-                if self.flags['last_wall_jump']['left'] == False: # Last jump wasn't from left
-                    self.do_wall_jump_action(1)
-                    
-                    self.flags['last_wall_jump']['left'] = True
-                    self.flags['last_wall_jump']['right'] = False
-                    self.flags['air_jump'] = True
+                self.do_wall_jump_action(1)
+                
+                self.flags['last_wall_jump']['left'] = True
+                self.flags['last_wall_jump']['right'] = False
+                self.flags['air_jump'] = True
                     
         
     
