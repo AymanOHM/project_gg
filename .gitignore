@@ -1,1 +1,3 @@
-__pycache__
+*.pyc
+clouds.cpython-37.pyc
+*.psd

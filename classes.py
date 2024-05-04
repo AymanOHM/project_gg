@@ -8,7 +8,7 @@ from texture import *
 
 class entity:
 
-    def __init__(self, game, path, pos, size=[50, 50], speed=[3, 0]):
+    def __init__(self, game, path, pos, size=[50, 50], speed=[6, 5]):
 
         self.pos = list(pos)
         self.game=game
@@ -16,14 +16,15 @@ class entity:
         self.gravity = self.environment['gravity']
         self.size   = list(size)   
         
-        #texture
+        # texture
         self.path = path
         self.tex = Texture(game.assets['player'])
         
         
         ## Entity transformation ##
-        #movement will be passed from update
-        self.speed = list(speed)  #array
+        # movement will be passed from update
+        self.speed = list(speed)      # initial speed property
+        self.velocity = [speed[0], 0] # interactive speed
 
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
 
@@ -34,7 +35,7 @@ class entity:
     def rect(self):
         return pg.Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
     
-    #the rect method does update param this for us, all we need is to chang pos now    
+    #the rect method does update param this for us, all we need is to change pos now    
 
     def set_action(self, action):
         if action != self.action:
@@ -45,13 +46,14 @@ class entity:
         #resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
         
-        mov_amount = (movement[0]*self.speed[0], movement[1] + self.speed[1])
+        mov_amount = (movement[0]*self.velocity[0], movement[1] + self.velocity[1])
         
         self.pos[0] += mov_amount[0]
         entity_rect = self.rect()
         
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
+                
                 if mov_amount[0] > 0:
                     self.collisions['right'] = True
                     entity_rect.right = rect.left
@@ -66,10 +68,10 @@ class entity:
         
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
-                if mov_amount[1] > 0:
+                if mov_amount[1] < 0:
                     self.collisions['up'] = True
                     entity_rect.bottom = rect.top
-                if mov_amount[1] < 0:
+                if mov_amount[1] > 0:
                     self.collisions['down'] = True
                     entity_rect.top = rect.bottom
                 self.pos[1] = entity_rect.y
@@ -79,10 +81,10 @@ class entity:
         if movement[0] < 0:
             self.flip = True
 
-        self.speed[1] = min(5, self.speed[1] - 0.2)
+        self.velocity[1] = min(5, self.velocity[1] - 0.2)
 
         if self.collisions['down'] or self.collisions['up']:
-            self.speed[1] = 0
+            self.velocity[1] = 0
 
         self.animation.update()
         
@@ -98,7 +100,7 @@ class entity:
 
 class player(entity):
     
-    def __init__(self, game, pos, size=[50,50], speed=[5,0]):
+    def __init__(self, game, pos, size=[50,50], speed=[6,5]):
         super().__init__(game,'player',pos,size,speed)
         
         self.flags = {'air_jump': False,
@@ -151,9 +153,11 @@ class player(entity):
         entity_rect = self.rect()
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
+                # print(entity_rect.bottom, entity_rect.right)
+                # print(rect.top, rect.right)
                 if self.mov_amount[1] > 0:
                     # Stop the player
-                    self.speed[1] = 0
+                    self.velocity[1] = 0
                     
                     # Edit Flags
                     self.collisions['up'] = True
@@ -162,7 +166,7 @@ class player(entity):
                     
                 if self.mov_amount[1] < 0:
                     # Stop the player
-                    self.speed[1] = 0
+                    self.velocity[1] = 0
                     
                     # Edit Flags
                     self.collisions['down'] = True
@@ -177,12 +181,12 @@ class player(entity):
                     
                 self.pos[1] = entity_rect.y
         
-        if self.speed[1] < 0 and self.flags['friction']:
+        if self.velocity[1] < 0 and self.flags['friction']:
             gravity_effect =  self.gravity / 2
         else:
             gravity_effect = self.gravity
         
-        self.speed[1] = max(-10, self.speed[1] - gravity_effect )
+        self.velocity[1] = max(-10, self.velocity[1] - gravity_effect )
         self.flags['friction'] = False
         
         if self.mov_amount[0] > 0:
@@ -200,8 +204,8 @@ class player(entity):
         
         if not any(self.collisions.values()) or any(self.flags['last_wall_jump'].values()):
             
-            air_dive_effect = direction[0]  * self.speed[0] / 10
-            limit = self.speed[0]
+            air_dive_effect = direction[0]  * self.velocity[0] / 10
+            limit = self.velocity[0]
             
             if self.mov_amount[0] > 0:
                 self.mov_amount[0] = min(limit, self.mov_amount[0] + air_dive_effect )
@@ -209,10 +213,10 @@ class player(entity):
             else:
                 self.mov_amount[0] = max( -limit , self.mov_amount[0] + air_dive_effect )
 
-            self.mov_amount[1] = direction[1] + self.speed[1]
+            self.mov_amount[1] = direction[1] + self.velocity[1]
 
         else:
-            self.mov_amount = [direction[0] * self.speed[0], direction[1] + self.speed[1]]
+            self.mov_amount = [direction[0] * self.velocity[0], direction[1] + self.velocity[1]]
 
     
     def jump(self):
@@ -242,10 +246,10 @@ class player(entity):
         
     
     def do_jump_action(self):
-        self.speed[1]= 5
+        self.velocity[1]= self.speed[1]
     
     def do_wall_jump_action(self, direction):
-        self.speed[1] = 5
+        self.velocity[1] = self.speed[1]
         self.mov_amount[0] = direction * self.speed[0]
         
     
@@ -261,4 +265,33 @@ class player(entity):
         else:
             self.set_action('idle')
         
+
+class Rect():
+    def __init__(self, x, y, w, h):
+        self.centerx = x
+        self.x = x
+        self.centery = y
+        self.y = y
+        self.width = w
+        self.height = h
+        self.right = x + ( w/2 )
+        self.left = x - ( w/2 )
+        self.top = y + ( h/2 )
+        self.bottom = y - ( h/2 )
+        
+    def colliderect(self, rect):
+        
+        # Calculate max horizontal distance
+        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
+        
+        # Calculate max vertical distance
+        max_v_distance = max(abs(self.top - rect.bottom), abs(self.bottom - rect.top))
+        
+        
+        # Detect collision
+        h_collid = max_h_distance <= (self.width + rect.width)
+        v_collid = max_v_distance <= (self.height + rect.height)
+        
+        collid =(h_collid and v_collid)
+        return collid
     

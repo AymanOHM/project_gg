@@ -14,11 +14,7 @@ class Game():
         self.w=w
         self.h=h
         self.environment = {'gravity': 0.2}
-        #pg init
-        pg.init()
-        pg.display.set_caption("gg")
-        self.display = pg.display.set_mode((w, h), flags=pg.OPENGL | pg.DOUBLEBUF)
-        self.clock = pg.time.Clock()
+        
         self.assets = {
             'decor': load_images('tiles/decor'),
             'grass': load_images('tiles/grass'),
@@ -33,27 +29,34 @@ class Game():
             'player/wall_slide': Animation(load_images('entities/player/wall_slide')),
         }
 
+        # OpenGL init
+        self.gl_init()
+
+        # Preparations
+        glClearColor(72/255,160/255,211/255,1.0) # Sky color
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, w, 0, h, -1, 1)
+        
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        
+        
         self.scroll=[0,0]
         
         self.clouds = Clouds(self.assets['clouds'], count=16)
         
-        self.player = player(self, (750, 600), (35, 55))
+        self.player = player(game=self,
+                             pos=(750, 600),
+                             size=(35, 55),
+                             speed=(5, 5))
 
         self.tilemap = Tilemap(game=self, tile_size=45)
+
         self.tilemap.load('map.json')
 
-        # OpenGL init
+        glutMainLoop()
 
-        glClearColor(72/255,160/255,211/255,1.0)
-
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0, w, 0, h, -1, 1)
-        # gluPerspective(120,w/h,0.1,100)   #default is ortho unit cube
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        glEnable(GL_TEXTURE_2D)
-        glEnable(GL_BLEND)
 
     def draw(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -62,52 +65,61 @@ class Game():
         
         scroll=self.scroll
         glTranslate(-scroll[0],-scroll[1],0)
-        # glRotate(30,0,0,1)
-        # glColor3b(52, 73, 102)
+        
         self.clouds.update()
         self.clouds.render()
         
         self.tilemap.render()
 
+        self.scroll[0] += int((self.player.pos[0] - self.w / 2 - self.scroll[0]) /30)
+        self.scroll[1] += int((self.player.pos[1] - self.h / 2 - self.scroll[1])/30)
+
+
         self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
         self.player.draw()
         
+        glutSwapBuffers()
+
+
+    def gl_init(self):
         
+        # OpenGL Initialization
+        glutInit()
+        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
+        glutInitWindowPosition(200, 200)
+        glutInitWindowSize(self.w, self.h)
+        glutCreateWindow(b"gg")
         
-        pg.display.flip()
+        # Define functions
+        glutDisplayFunc(self.draw)
+        glutKeyboardFunc(self.keyboard_callback)
+        glutKeyboardUpFunc(self.keyboardUp_callback)
+        glutTimerFunc(1, self.game_timer, 1)
+        
+        # Enable Texture
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)  # FOR BLENDING
 
+    def game_timer(self, v):
+        self.draw()
+        glutTimerFunc(1, self.game_timer, 1)
+    
+    def keyboard_callback(self, key, x, y):
+        if key == b"q":
+            sys.exit(0)
+        if key == b'a':
+            self.movement[0] = True
+        if key == b'd':
+            self.movement[1] = True
+        if key == b'w':
+            self.player.jump()
 
-
-    def run(self):
-
-        while True:
-        # glutMainLoop() or pg loop in this case
-            
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    pg.quit()
-                    sys.exit() 
-                    
-
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_LEFT:
-                        self.movement[0] = True
-                    if event.key == pg.K_RIGHT:
-                        self.movement[1] = True
-                    if event.key == pg.K_UP:
-                        self.player.jump()
-                        
-                if event.type == pg.KEYUP:
-                    if event.key == pg.K_LEFT:
-                        self.movement[0] = False
-                    if event.key == pg.K_RIGHT:
-                        self.movement[1] = False
-                        
-            self.scroll[0] += int((self.player.rect().centerx - self.display.get_width() / 2 - self.scroll[0]) /30)
-            self.scroll[1] += int((self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1])/30)
-
-            self.draw()
-            self.clock.tick(60)  # limits FPS to 60
+    def keyboardUp_callback(self, key, x, y):
+        if key == b'a':
+            self.movement[0] = False
+        if key == b'd':
+            self.movement[1] = False
 
 
 g = Game(1366, 768)
