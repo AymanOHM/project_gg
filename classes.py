@@ -1,7 +1,6 @@
 from OpenGL.GL import * 
 from OpenGL.GLUT import * 
 from OpenGL.GLU import * 
-import pygame as pg
 
 from texture import *
 # from game import *
@@ -33,7 +32,7 @@ class entity:
         self.set_action('idle')
 
     def rect(self):
-        return pg.Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
+        return Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
     
     #the rect method does update param this for us, all we need is to change pos now    
 
@@ -53,7 +52,6 @@ class entity:
         
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
-                
                 if mov_amount[0] > 0:
                     self.collisions['right'] = True
                     entity_rect.right = rect.left
@@ -128,6 +126,7 @@ class player(entity):
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
                 
+                
                 # From Right
                 if self.mov_amount[0] > 0:
                     # Edit Flags
@@ -143,7 +142,6 @@ class player(entity):
                     self.flags['friction'] = True
                         
                     entity_rect.left = rect.right
-                    
                 self.pos[0] = entity_rect.x
         
         # Change vertical position
@@ -153,8 +151,7 @@ class player(entity):
         entity_rect = self.rect()
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
-                # print(entity_rect.bottom, entity_rect.right)
-                # print(rect.top, rect.right)
+                
                 if self.mov_amount[1] > 0:
                     # Stop the player
                     self.velocity[1] = 0
@@ -265,20 +262,109 @@ class player(entity):
         else:
             self.set_action('idle')
         
-
 class Rect():
     def __init__(self, x, y, w, h):
-        self.centerx = x
-        self.x = x
-        self.centery = y
-        self.y = y
-        self.width = w
-        self.height = h
-        self.right = x + ( w/2 )
-        self.left = x - ( w/2 )
-        self.top = y + ( h/2 )
-        self.bottom = y - ( h/2 )
+        self._x = int(x)
+        self._y = int(y)
+        self._w = int(w)
+        self._h = int(h)
+    
+    @property
+    def x(self):
+        return self._x
+    
+    @x.setter
+    def x(self, value):
+        self._x = int(value)
+    
+    @property
+    def y(self):
+        return self._y
+    
+    @y.setter
+    def y(self, value):
+        self._y = int(value)
+    
+    @property
+    def centerx(self):
+        return self._x
+    
+    @centerx.setter
+    def centerx(self, value):
+        self._x = int(value)
+    
+    @property
+    def centery(self):
+        return self._y
+    
+    @centery.setter
+    def centery(self, value):
+        self._y = int(value)
+    
+    @property
+    def top(self):
+        return self._y
+    
+    @top.setter
+    def top(self, value):
+        self._y = int(value)
+    
+    @property
+    def left(self):
+        return self._x
+    
+    @left.setter
+    def left(self, value):
+        self._x = int(value)
+    
+    @property
+    def bottom(self):
+        return self._y + self._h
+    
+    @bottom.setter
+    def bottom(self, value):
+        self._y = int(value) - self._h
+    
+    @property
+    def right(self):
+        return self._x + self._w
+    
+    @right.setter
+    def right(self, value):
+        self._x = int(value) - self._w
+    
+    @property
+    def w(self):
+        return self._w
+    
+    @w.setter
+    def w(self, value):
+        self._w = int(value)
+    
+    @property
+    def h(self):
+        return self._h
+    
+    @h.setter
+    def h(self, value):
+        self._h = int(value)
+    
+    def colliderect(self, rect):
         
+        # Calculate max horizontal distance
+        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
+        
+        # Calculate max vertical distance
+        max_v_distance = max(abs(self.bottom - rect.top), abs(self.top - rect.bottom))
+        
+        
+        # Detect collision
+        h_collid = max_h_distance < (self.w + rect.w)
+        v_collid = max_v_distance < (self.h + rect.h)
+        
+        collid = (h_collid and v_collid)
+        return collid
+
     def colliderect(self, rect):
         
         # Calculate max horizontal distance
@@ -289,9 +375,9 @@ class Rect():
         
         
         # Detect collision
-        h_collid = max_h_distance <= (self.width + rect.width)
-        v_collid = max_v_distance <= (self.height + rect.height)
+        h_collid = max_h_distance < (self.w + rect.w)
+        v_collid = max_v_distance < (self.h + rect.h)
         
-        collid =(h_collid and v_collid)
+        collid = (h_collid and v_collid)
         return collid
     

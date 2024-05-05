@@ -1,4 +1,3 @@
-import pygame as pg
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import sys
@@ -103,7 +102,7 @@ class Game():
 
     def game_timer(self, v):
         self.draw()
-        glutTimerFunc(1, self.game_timer, 1)
+        glutTimerFunc(v, self.game_timer, v)
     
     def keyboard_callback(self, key, x, y):
         if key == b"q":

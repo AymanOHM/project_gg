@@ -1,5 +1,4 @@
 from OpenGL.GL import *
-import pygame as pg
 from helper_func import *
 import random
 
