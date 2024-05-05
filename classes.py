@@ -226,14 +226,14 @@ class player(entity):
                 self.do_jump_action()
                 
         ## Check Wall Jump ##
-            if self.collisions['right']:
+            elif self.collisions['right']:
                 self.do_wall_jump_action(-1)
                 
                 self.flags['last_wall_jump']['right'] = True
                 self.flags['last_wall_jump']['left'] = False
                 self.flags['air_jump'] = True
                     
-            if self.collisions['left']:
+            elif self.collisions['left']:
                 self.do_wall_jump_action(1)
                 
                 self.flags['last_wall_jump']['left'] = True
