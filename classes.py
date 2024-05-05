@@ -1,14 +1,13 @@
 from OpenGL.GL import * 
 from OpenGL.GLUT import * 
 from OpenGL.GLU import * 
-import pygame as pg
 
 from texture import *
 # from game import *
 
 class entity:
 
-    def __init__(self, game, path, pos, size=[50, 50], speed=[3, 0]):
+    def __init__(self, game, path, pos, size=[50, 50], speed=[6, 5]):
 
         self.pos = list(pos)
         self.game=game
@@ -16,14 +15,15 @@ class entity:
         self.gravity = self.environment['gravity']
         self.size   = list(size)   
         
-        #texture
+        # texture
         self.path = path
         self.tex = Texture(game.assets['player'])
         
         
         ## Entity transformation ##
-        #movement will be passed from update
-        self.speed = list(speed)  #array
+        # movement will be passed from update
+        self.speed = list(speed)      # initial speed property
+        self.velocity = [speed[0], 0] # interactive speed
 
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
 
@@ -32,9 +32,9 @@ class entity:
         self.set_action('idle')
 
     def rect(self):
-        return pg.Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
+        return Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
     
-    #the rect method does update param this for us, all we need is to chang pos now    
+    #the rect method does update param this for us, all we need is to change pos now    
 
     def set_action(self, action):
         if action != self.action:
@@ -45,7 +45,7 @@ class entity:
         #resetting collisions every movement
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
         
-        mov_amount = (movement[0]*self.speed[0], movement[1] + self.speed[1])
+        mov_amount = (movement[0]*self.velocity[0], movement[1] + self.velocity[1])
         
         self.pos[0] += mov_amount[0]
         entity_rect = self.rect()
@@ -66,10 +66,10 @@ class entity:
         
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
-                if mov_amount[1] > 0:
+                if mov_amount[1] < 0:
                     self.collisions['up'] = True
                     entity_rect.bottom = rect.top
-                if mov_amount[1] < 0:
+                if mov_amount[1] > 0:
                     self.collisions['down'] = True
                     entity_rect.top = rect.bottom
                 self.pos[1] = entity_rect.y
@@ -79,10 +79,10 @@ class entity:
         if movement[0] < 0:
             self.flip = True
 
-        self.speed[1] = min(5, self.speed[1] - 0.2)
+        self.velocity[1] = min(5, self.velocity[1] - 0.2)
 
         if self.collisions['down'] or self.collisions['up']:
-            self.speed[1] = 0
+            self.velocity[1] = 0
 
         self.animation.update()
         
@@ -98,7 +98,7 @@ class entity:
 
 class player(entity):
     
-    def __init__(self, game, pos, size=[50,50], speed=[5,0]):
+    def __init__(self, game, pos, size=[50,50], speed=[6,5]):
         super().__init__(game,'player',pos,size,speed)
         
         self.flags = {'air_jump': False,
@@ -126,6 +126,7 @@ class player(entity):
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
                 
+                
                 # From Right
                 if self.mov_amount[0] > 0:
                     # Edit Flags
@@ -141,7 +142,6 @@ class player(entity):
                     self.flags['friction'] = True
                         
                     entity_rect.left = rect.right
-                    
                 self.pos[0] = entity_rect.x
         
         # Change vertical position
@@ -151,9 +151,10 @@ class player(entity):
         entity_rect = self.rect()
         for rect in map.p_tiles_around(self.pos):
             if entity_rect.colliderect(rect):
+                
                 if self.mov_amount[1] > 0:
                     # Stop the player
-                    self.speed[1] = 0
+                    self.velocity[1] = 0
                     
                     # Edit Flags
                     self.collisions['up'] = True
@@ -162,7 +163,7 @@ class player(entity):
                     
                 if self.mov_amount[1] < 0:
                     # Stop the player
-                    self.speed[1] = 0
+                    self.velocity[1] = 0
                     
                     # Edit Flags
                     self.collisions['down'] = True
@@ -177,12 +178,12 @@ class player(entity):
                     
                 self.pos[1] = entity_rect.y
         
-        if self.speed[1] < 0 and self.flags['friction']:
+        if self.velocity[1] < 0 and self.flags['friction']:
             gravity_effect =  self.gravity / 2
         else:
             gravity_effect = self.gravity
         
-        self.speed[1] = max(-10, self.speed[1] - gravity_effect )
+        self.velocity[1] = max(-10, self.velocity[1] - gravity_effect )
         self.flags['friction'] = False
         
         if self.mov_amount[0] > 0:
@@ -200,8 +201,8 @@ class player(entity):
         
         if not any(self.collisions.values()) or any(self.flags['last_wall_jump'].values()):
             
-            air_dive_effect = direction[0]  * self.speed[0] / 10
-            limit = self.speed[0]
+            air_dive_effect = direction[0]  * self.velocity[0] / 10
+            limit = self.velocity[0]
             
             if self.mov_amount[0] > 0:
                 self.mov_amount[0] = min(limit, self.mov_amount[0] + air_dive_effect )
@@ -209,10 +210,10 @@ class player(entity):
             else:
                 self.mov_amount[0] = max( -limit , self.mov_amount[0] + air_dive_effect )
 
-            self.mov_amount[1] = direction[1] + self.speed[1]
+            self.mov_amount[1] = direction[1] + self.velocity[1]
 
         else:
-            self.mov_amount = [direction[0] * self.speed[0], direction[1] + self.speed[1]]
+            self.mov_amount = [direction[0] * self.velocity[0], direction[1] + self.velocity[1]]
 
     
     def jump(self):
@@ -242,10 +243,10 @@ class player(entity):
         
     
     def do_jump_action(self):
-        self.speed[1]= 5
+        self.velocity[1]= self.speed[1]
     
     def do_wall_jump_action(self, direction):
-        self.speed[1] = 5
+        self.velocity[1] = self.speed[1]
         self.mov_amount[0] = direction * self.speed[0]
         
     
@@ -261,4 +262,122 @@ class player(entity):
         else:
             self.set_action('idle')
         
+class Rect():
+    def __init__(self, x, y, w, h):
+        self._x = int(x)
+        self._y = int(y)
+        self._w = int(w)
+        self._h = int(h)
+    
+    @property
+    def x(self):
+        return self._x
+    
+    @x.setter
+    def x(self, value):
+        self._x = int(value)
+    
+    @property
+    def y(self):
+        return self._y
+    
+    @y.setter
+    def y(self, value):
+        self._y = int(value)
+    
+    @property
+    def centerx(self):
+        return self._x
+    
+    @centerx.setter
+    def centerx(self, value):
+        self._x = int(value)
+    
+    @property
+    def centery(self):
+        return self._y
+    
+    @centery.setter
+    def centery(self, value):
+        self._y = int(value)
+    
+    @property
+    def top(self):
+        return self._y
+    
+    @top.setter
+    def top(self, value):
+        self._y = int(value)
+    
+    @property
+    def left(self):
+        return self._x
+    
+    @left.setter
+    def left(self, value):
+        self._x = int(value)
+    
+    @property
+    def bottom(self):
+        return self._y + self._h
+    
+    @bottom.setter
+    def bottom(self, value):
+        self._y = int(value) - self._h
+    
+    @property
+    def right(self):
+        return self._x + self._w
+    
+    @right.setter
+    def right(self, value):
+        self._x = int(value) - self._w
+    
+    @property
+    def w(self):
+        return self._w
+    
+    @w.setter
+    def w(self, value):
+        self._w = int(value)
+    
+    @property
+    def h(self):
+        return self._h
+    
+    @h.setter
+    def h(self, value):
+        self._h = int(value)
+    
+    def colliderect(self, rect):
+        
+        # Calculate max horizontal distance
+        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
+        
+        # Calculate max vertical distance
+        max_v_distance = max(abs(self.bottom - rect.top), abs(self.top - rect.bottom))
+        
+        
+        # Detect collision
+        h_collid = max_h_distance < (self.w + rect.w)
+        v_collid = max_v_distance < (self.h + rect.h)
+        
+        collid = (h_collid and v_collid)
+        return collid
+
+    def colliderect(self, rect):
+        
+        # Calculate max horizontal distance
+        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
+        
+        # Calculate max vertical distance
+        max_v_distance = max(abs(self.top - rect.bottom), abs(self.bottom - rect.top))
+        
+        
+        # Detect collision
+        h_collid = max_h_distance < (self.w + rect.w)
+        v_collid = max_v_distance < (self.h + rect.h)
+        
+        collid = (h_collid and v_collid)
+        return collid
     

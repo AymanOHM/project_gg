@@ -1,6 +1,6 @@
 import random
 from texture import * 
-import pygame as pg
+import classes
 
 class Cloud:
     def __init__(self, pos, img, speed, depth):
@@ -14,7 +14,7 @@ class Cloud:
         self.pos[0] += self.speed
         
     def render(self, offset=(0, 0)):
-        rect=pg.Rect(self.pos[0]- offset[0] * self.depth, self.pos[1]- offset[1] * self.depth, self.img[1]*8, self.img[2]*8)
+        rect=classes.Rect(self.pos[0]- offset[0] * self.depth, self.pos[1]- offset[1] * self.depth, self.img[1]*8, self.img[2]*8)
         self.tex.draw(rect.left, rect.right, rect.top, rect.bottom)
         
 class Clouds:

@@ -1,22 +1,23 @@
 from OpenGL.GL import *
-import pygame as pg
 from helper_func import *
-
+import random
 
 class Texture:
     def __init__(self, img):
 
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)  # FOR BLENDING
-
         self.img = img
-        self.id = glGenTextures(1)
+        
+        random_id = random.randint(1, 1000)
+        self.id = random_id
+
+        glGenTextures(1, [random_id])
+        
         glBindTexture(GL_TEXTURE_2D, self.id)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)  # GL_MIRRORED_REPEAT , GL_CLAMP_TO_EDGE, GL_CLAMP_TO_BORDER
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-   
+
 
     def bind(self):
         glBindTexture(GL_TEXTURE_2D,self.id)
