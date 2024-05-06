@@ -9,7 +9,7 @@ from scripts.clouds import *
 from scripts.screens import *
 
 class Game():
-    def __init__(self, w=800, h=600, fullscreen=False):
+    def __init__(self, w=800, h=600, fullscreen=True):
         self.fullscreen = fullscreen
         
         self.is_alive = False
@@ -214,5 +214,5 @@ class Game():
                 self.player.fire=False
 
 
-g = Game(1360, 800, fullscreen=False)
+g = Game(1360, 800, fullscreen=True)
 
