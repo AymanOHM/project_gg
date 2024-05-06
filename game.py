@@ -9,7 +9,9 @@ from scripts.clouds import *
 from scripts.screens import *
 
 class Game():
-    def __init__(self, w=800, h=600):
+    def __init__(self, w=800, h=600, fullscreen=True):
+        self.fullscreen = fullscreen
+        
         self.is_alive = False
         self.stage= 0
         self.movement = [False, False,False, False]
@@ -38,6 +40,7 @@ class Game():
             'enemy/wall_slide': Animation(load_images('entities/player2/wall_slide')),
             'gun': load_image('_gun.png'),
             'bullet': load_image('bullet3.png'),
+            'health_bar': load_image('health_simple.png'),
             'welcome': load_image('welcome.png'),
             'P1': load_image('P1.png'),
             'P2': load_image('P2.png')
@@ -72,11 +75,8 @@ class Game():
 
         self.tilemap.load('map.json')
 
-        # self.bullet = Bullet()
-        
-
-        # self.bullet = Bullet()
-
+        if self.fullscreen:
+            glutFullScreen()
 
         glutMainLoop()
 
@@ -97,12 +97,13 @@ class Game():
         
         if self.is_alive:
             
-            self.scroll[0] += int((((self.player.pos[0]+self.enemy.pos[0])/2) - self.w / 2 - self.scroll[0]) /30)
-            self.scroll[1] += int((((self.player.pos[1]+self.enemy.pos[1])/2) - self.h / 2 - self.scroll[1])/30)
+            self.scroll[0] += (((self.player.pos[0]+self.enemy.pos[0])/2) - self.w / 2 - self.scroll[0]) /30
+            self.scroll[1] += (((self.player.pos[1]+self.enemy.pos[1])/2) - self.h / 2 - self.scroll[1])/30
 
             self.player.move(self.tilemap, [self.movement[3] - self.movement[2], 0])
             self.enemy.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
-           # Drawing the player.
+            
+            # Drawing the player.
             self.player.draw()
             # Drawing the enemy.
             self.enemy.draw()
@@ -110,20 +111,14 @@ class Game():
         else:
             self.show_screens()
             
-        # try:
-            
-        # except: 
-        #     pass
-        
-            
         glutSwapBuffers()
 
 
     def show_screens(self):
         if self.stage ==0:
             self.wel_screen.draw()
-            self.scroll[0] += int((self.wel_screen.center[0]  -   self.w / 2 )-self.scroll[0])/30
-            self.scroll[1] += int((self.wel_screen.center[1] -  self.h / 2 )-self.scroll[1])/30
+            self.scroll[0] += ((self.wel_screen.center[0]  -   self.w / 2 )-self.scroll[0])/30
+            self.scroll[1] += ((self.wel_screen.center[1] -  self.h / 2 )-self.scroll[1])/30
         elif self.stage ==1:
             
             self.player = player(self,'player',(900, 600),(35, 55))
@@ -133,15 +128,15 @@ class Game():
             # self.player.reset()
             # self.enemy.reset()
         elif self.stage==2:
-            if self.enemy.health==0 or self.enemy.pos[1]<-300:
+            if self.enemy.health==0 or self.enemy.pos[1] < -300:
                 self.P1_screen.draw()
-                self.scroll[0] += int((self.P1_screen.center[0] - self.w / 2 - self.scroll[0]) /30)
-                self.scroll[1] += int((self.P1_screen.center[1] - self.h / 2 - self.scroll[1])/30) 
+                self.scroll[0] += (self.P1_screen.center[0] - self.w / 2 - self.scroll[0]) /30
+                self.scroll[1] += (self.P1_screen.center[1] - self.h / 2 - self.scroll[1])/30
         
             else:
                 self.P2_screen.draw()
-                self.scroll[0] += int((self.P2_screen.center[0] - self.w / 2 - self.scroll[0]) /30)
-                self.scroll[1] += int((self.P2_screen.center[1] - self.h / 2 - self.scroll[1])/30)   
+                self.scroll[0] += (self.P2_screen.center[0] - self.w / 2 - self.scroll[0]) /30
+                self.scroll[1] += (self.P2_screen.center[1] - self.h / 2 - self.scroll[1])/30
     
     def gl_init(self):
         
@@ -157,6 +152,7 @@ class Game():
         glutDisplayFunc(self.draw)
         glutKeyboardFunc(self.keyboard_callback)
         glutKeyboardUpFunc(self.keyboardUp_callback)
+        
         glutTimerFunc(1, self.game_timer, 1)
         
         # Enable Texture
@@ -173,38 +169,50 @@ class Game():
             self.stage=1
         if key == b"q":
             sys.exit(0)
-        if key == b'a':
-            self.movement[0] = True 
-        if key == b'd':
-            self.movement[1] = True
-        if key == b'w':
-            self.enemy.jump()
-        if key == b'4':
-            self.movement[2] = True
-        if key == b'6':
-            self.movement[3] = True
-        if key == b'8':
-            self.player.jump()
-        if key == b' ':
-            self.enemy.fire=True
-        if key == b'0':
-            self.player.fire=True
+        
+        if self.is_alive:
+            if key == b'a':
+                self.movement[0] = True 
+            if key == b'd':
+                self.movement[1] = True
+            if key == b'w' and self.is_alive:
+                self.enemy.jump()
+            if key == b's'and self.is_alive:
+                self.enemy.flags['fast_fall'] = True
+                
+            if key == b'4':
+                self.movement[2] = True
+            if key == b'6':
+                self.movement[3] = True
+            if key == b'8':
+                self.player.jump()
+            if key == b'5':
+                self.player.flags['fast_fall'] = True
+            if key == b' ':
+                self.enemy.fire=True
+            if key == b'0':
+                self.player.fire=True
 
     def keyboardUp_callback(self, key, x, y):
-        if key == b'a':
-            self.movement[0] = False
-        if key == b'd':
-            self.movement[1] = False
-        if key == b'4':
-            self.movement[2] = False
-        if key == b'6':
-            self.movement[3] = False
-        if key == b' ':
-            self.enemy.fire=False
-        if key == b'0':
-            self.player.fire=False
-        
+        if self.is_alive:
+            if key == b'a':
+                self.movement[0] = False
+            if key == b'd':
+                self.movement[1] = False
+            if key == b's':
+                self.enemy.flags['fast_fall'] = False
+                
+            if key == b'4':
+                self.movement[2] = False
+            if key == b'6':
+                self.movement[3] = False
+            if key == b'5':
+                self.player.flags['fast_fall'] = False
+            if key == b' ':
+                self.enemy.fire=False
+            if key == b'0':
+                self.player.fire=False
 
 
-g = Game(1366, 768)
+g = Game(1360, 800, fullscreen=True)
 

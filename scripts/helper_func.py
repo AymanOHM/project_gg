@@ -53,7 +53,7 @@ class Rect():
     
     @x.setter
     def x(self, value):
-        self._x = int(value)
+        self._x = value
     
     @property
     def y(self):
@@ -61,7 +61,7 @@ class Rect():
     
     @y.setter
     def y(self, value):
-        self._y = int(value)
+        self._y = value
     
     @property
     def centerx(self):
@@ -69,7 +69,7 @@ class Rect():
     
     @centerx.setter
     def centerx(self, value):
-        self._x = int(value)
+        self._x = value + self._w /2
     
     @property
     def centery(self):
@@ -77,7 +77,7 @@ class Rect():
     
     @centery.setter
     def centery(self, value):
-        self._y = int(value)
+        self._y = value
     
     @property
     def top(self):
@@ -85,7 +85,7 @@ class Rect():
     
     @top.setter
     def top(self, value):
-        self._y = int(value)
+        self._y = value
     
     @property
     def left(self):
@@ -93,7 +93,7 @@ class Rect():
     
     @left.setter
     def left(self, value):
-        self._x = int(value)
+        self._x = value
     
     @property
     def bottom(self):
@@ -101,7 +101,7 @@ class Rect():
     
     @bottom.setter
     def bottom(self, value):
-        self._y = int(value) - self._h
+        self._y = value - self._h
     
     @property
     def right(self):
@@ -109,7 +109,7 @@ class Rect():
     
     @right.setter
     def right(self, value):
-        self._x = int(value) - self._w
+        self._x = value - self._w
     
     @property
     def w(self):
@@ -117,7 +117,7 @@ class Rect():
     
     @w.setter
     def w(self, value):
-        self._w = int(value)
+        self._w = value
     
     @property
     def h(self):
@@ -125,7 +125,7 @@ class Rect():
     
     @h.setter
     def h(self, value):
-        self._h = int(value)
+        self._h = value
     
     def colliderect(self, rect):
         
@@ -142,23 +142,3 @@ class Rect():
         
         collid = (h_collid and v_collid)
         return collid
-
-    def colliderect(self, rect):
-        
-        # Calculate max horizontal distance
-        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
-        
-        # Calculate max vertical distance
-        max_v_distance = max(abs(self.top - rect.bottom), abs(self.bottom - rect.top))
-        
-        
-        # Detect collision
-        h_collid = max_h_distance < (self.w + rect.w)
-        v_collid = max_v_distance < (self.h + rect.h)
-        
-        collid = (h_collid and v_collid)
-        return collid
-    
-
-
-        
