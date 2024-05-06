@@ -1,5 +1,5 @@
 from OpenGL.GL import *
-from helper_func import *
+from scripts.helper_func import *
 import random
 
 class Texture:
