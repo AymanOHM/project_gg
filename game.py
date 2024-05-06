@@ -5,10 +5,16 @@ from classes import *
 from helper_func import *
 from tilemap import *
 from clouds import *
+from bullet import *
+from gun_drawing import draw_player_gun, draw_enemy_gun
+from bullet_collision import player_bullet_collision, enemy_bullet_collision
 
 class Game():
     def __init__(self, w=800, h=600):
-        self.movement = [False, False]
+        self.is_alive = False
+
+        self.player_movement = [False, False]
+        self.enemy_movement = [False, False]
 
         self.w=w
         self.h=h
@@ -26,6 +32,10 @@ class Game():
             'player/jump': Animation(load_images('entities/player/jump')),
             'player/slide': Animation(load_images('entities/player/slide')),
             'player/wall_slide': Animation(load_images('entities/player/wall_slide')),
+            'enemy/idle': Animation(load_images('entities/enemy/idle'), img_dur=6),
+            'enemy/run': Animation(load_images('entities/enemy/run'), img_dur=4),
+            'gun': load_image('_gun.png'),
+            'bullet': load_image('bullet.png')
         }
 
         # OpenGL init
@@ -42,17 +52,35 @@ class Game():
         
         
         self.scroll=[0,0]
-        
+
         self.clouds = Clouds(self.assets['clouds'], count=16)
-        
+
+        self.gun = Texture(self.assets['gun'])
+
+        # Initializing the player character.
         self.player = player(game=self,
                              pos=(750, 600),
                              size=(35, 55),
                              speed=(5, 5))
+        self.player_gun_direction = False
 
+        # Initializing the enemy character.
+        self.enemy = player(self, (80, 600), (35, 55))
+        self.enemy_gun_direction = False
+
+        self.bullet_group = Bullets(self.assets['bullet'])
+        self.enemy_bullet_group = Bullets(self.assets['bullet'])
+        self.player_shoot = False
+        self.enemy_shoot = False
         self.tilemap = Tilemap(game=self, tile_size=45)
 
         self.tilemap.load('map.json')
+
+        # self.bullet = Bullet()
+
+
+        # self.bullet = Bullet()
+
 
         glutMainLoop()
 
@@ -61,22 +89,30 @@ class Game():
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glLoadIdentity()
-        
+
         scroll=self.scroll
         glTranslate(-scroll[0],-scroll[1],0)
         
         self.clouds.update()
         self.clouds.render()
-        
+
         self.tilemap.render()
 
         self.scroll[0] += int((self.player.pos[0] - self.w / 2 - self.scroll[0]) /30)
         self.scroll[1] += int((self.player.pos[1] - self.h / 2 - self.scroll[1])/30)
 
 
-        self.player.move(self.tilemap, [self.movement[1] - self.movement[0], 0])
+        # Drawing the player.
+        self.player.move(self.tilemap, [self.player_movement[1] - self.player_movement[0], 0])
         self.player.draw()
-        
+        # Drawing the enemy.
+        self.enemy.move(self.tilemap, [self.enemy_movement[1] - self.enemy_movement[0], 0])
+        self.enemy.draw()
+
+        # Setting the guns of the both the player and the enemy.
+        draw_player_gun(self, self.player, self.gun, self.player_gun_direction, self.bullet_group, self.player_shoot)
+        draw_enemy_gun(self, self.enemy, self.gun, self.enemy_gun_direction, self.enemy_bullet_group, self.enemy_shoot)
+
         glutSwapBuffers()
 
 
@@ -119,6 +155,7 @@ class Game():
             self.movement[0] = False
         if key == b'd':
             self.movement[1] = False
+
 
 
 g = Game(1366, 768)
