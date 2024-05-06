@@ -1,8 +1,8 @@
 from OpenGL.GL import * 
 from OpenGL.GLUT import * 
 from OpenGL.GLU import * 
-
-from texture import *
+from scripts.helper_func import *
+from scripts.texture import *
 # from game import *
 
 class entity:
@@ -10,6 +10,7 @@ class entity:
     def __init__(self, game, path, pos, size=[50, 50], speed=[6, 5]):
 
         self.pos = list(pos)
+        self.s_pos = self.pos
         self.game=game
         self.environment = game.environment
         self.gravity = self.environment['gravity']
@@ -17,7 +18,7 @@ class entity:
         
         # texture
         self.path = path
-        self.tex = Texture(game.assets['player'])
+        self.tex = Texture(game.assets[path])
         
         
         ## Entity transformation ##
@@ -29,7 +30,6 @@ class entity:
 
         self.action = ''
         self.flip = False
-        self.set_action('idle')
 
     def rect(self):
         return Rect(self.pos[0],self.pos[1],self.size[0],self.size[1])
@@ -84,22 +84,16 @@ class entity:
         if self.collisions['down'] or self.collisions['up']:
             self.velocity[1] = 0
 
-        self.animation.update()
-        
-        
-    def updating_tex(self):
-        self.tex = Texture(self.animation.img())
 
     def draw(self):
         rect = self.rect()
-        self.updating_tex()
         self.tex.draw(rect.left, rect.right, rect.top, rect.bottom, self.flip)
 
 
 class player(entity):
     
-    def __init__(self, game, pos, size=[50,50], speed=[6,5]):
-        super().__init__(game,'player',pos,size,speed)
+    def __init__(self, game, path, pos, size=[50,50], speed=[6,5]):
+        super().__init__(game,path, pos,size,speed)
         
         self.flags = {'air_jump': False,
                       'last_wall_jump': {'right': False, 'left': False},
@@ -107,6 +101,16 @@ class player(entity):
                       }
         self.air_time=0
         self.mov_amount = [0,0]
+        self.gun=gun(self.game,[self.rect().centerx,self.rect().centery])
+        
+        self.set_action('idle')
+        self.health=100
+        self.fire=False
+    
+    
+    def reset(self):
+        self.health=100
+        self.pos=self.s_pos    
     
     def move(self, map, direction: bool):
         
@@ -194,7 +198,22 @@ class player(entity):
         self.animation.update()
         self.air_time += 1
         
+        if self.fire:
+            self.gun.fire()
+        
         self.texture_update(direction)
+        self.gun.flip=self.flip
+        if not self.flip:
+            self.gun.pos=[self.pos[0]+21,self.pos[1]+15]
+        else:
+            
+            self.gun.pos=[self.pos[0],self.pos[1]+15]
+        self.gun.bullets.update()
+        
+        if self.health<=0 or self.pos[1]<-300:
+            self.game.stage=2
+            self.game.is_alive=False
+            
         
         
     def update_mov_amount(self, direction):
@@ -215,6 +234,7 @@ class player(entity):
         else:
             self.mov_amount = [direction[0] * self.velocity[0], direction[1] + self.velocity[1]]
 
+    
     
     def jump(self):
         ## Check Double Jump ##
@@ -249,7 +269,8 @@ class player(entity):
         self.velocity[1] = self.speed[1]
         self.mov_amount[0] = direction * self.speed[0]
         
-    
+    def updating_tex(self):
+        self.tex = Texture(self.animation.img())
     
     def texture_update(self, movement):
         if self.air_time > 1:
@@ -262,122 +283,71 @@ class player(entity):
         else:
             self.set_action('idle')
         
-class Rect():
-    def __init__(self, x, y, w, h):
-        self._x = int(x)
-        self._y = int(y)
-        self._w = int(w)
-        self._h = int(h)
-    
-    @property
-    def x(self):
-        return self._x
-    
-    @x.setter
-    def x(self, value):
-        self._x = int(value)
-    
-    @property
-    def y(self):
-        return self._y
-    
-    @y.setter
-    def y(self, value):
-        self._y = int(value)
-    
-    @property
-    def centerx(self):
-        return self._x
-    
-    @centerx.setter
-    def centerx(self, value):
-        self._x = int(value)
-    
-    @property
-    def centery(self):
-        return self._y
-    
-    @centery.setter
-    def centery(self, value):
-        self._y = int(value)
-    
-    @property
-    def top(self):
-        return self._y
-    
-    @top.setter
-    def top(self, value):
-        self._y = int(value)
-    
-    @property
-    def left(self):
-        return self._x
-    
-    @left.setter
-    def left(self, value):
-        self._x = int(value)
-    
-    @property
-    def bottom(self):
-        return self._y + self._h
-    
-    @bottom.setter
-    def bottom(self, value):
-        self._y = int(value) - self._h
-    
-    @property
-    def right(self):
-        return self._x + self._w
-    
-    @right.setter
-    def right(self, value):
-        self._x = int(value) - self._w
-    
-    @property
-    def w(self):
-        return self._w
-    
-    @w.setter
-    def w(self, value):
-        self._w = int(value)
-    
-    @property
-    def h(self):
-        return self._h
-    
-    @h.setter
-    def h(self, value):
-        self._h = int(value)
-    
-    def colliderect(self, rect):
-        
-        # Calculate max horizontal distance
-        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
-        
-        # Calculate max vertical distance
-        max_v_distance = max(abs(self.bottom - rect.top), abs(self.top - rect.bottom))
+    def draw(self):
+        rect = self.rect()
+        self.updating_tex()
+        self.tex.draw(rect.left, rect.right, rect.top, rect.bottom, self.flip)
+        self.gun.draw()
+        self.gun.bullets.draw()
         
         
-        # Detect collision
-        h_collid = max_h_distance < (self.w + rect.w)
-        v_collid = max_v_distance < (self.h + rect.h)
+class gun(entity):
+    def __init__(self, game, pos, size=[15, 13]):
+        super().__init__(game,'gun', pos, size, [0,0])
+        self.bullets=Bullets()
+        self.b_time=glutGet(GLUT_ELAPSED_TIME)
+    def fire(self):
+        if  glutGet(GLUT_ELAPSED_TIME)-self.b_time>250:
+            if not self.flip:
+                self.bullets.new_bullet(self.game,[self.pos[0]+25,self.pos[1]+8],self.flip)
+            else:
+                self.bullets.new_bullet(self.game,[self.pos[0]-50,self.pos[1]+8],self.flip)
+            self.b_time=glutGet(GLUT_ELAPSED_TIME)
         
-        collid = (h_collid and v_collid)
-        return collid
 
-    def colliderect(self, rect):
+class Bullets:
+    def __init__(self):
+        self.bullets = []
+
+    def new_bullet(self,game,  pos, flip):
+        self.bullets.append(Bullet(game,self.bullets, pos, flip))
+
+    def draw(self):
+        for bullet in self.bullets:
+            bullet.draw()
+
+    def update(self):
         
-        # Calculate max horizontal distance
-        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
+        for bullet in self.bullets:
+            
+            dis =  abs(bullet.pos[0]-bullet.s_pos[0])
+            if dis> 500:
+                self.bullets.remove(bullet)
+            else: 
+                bullet.update()
+
+    def get_bullets(self):
+        return self.bullets
+
         
-        # Calculate max vertical distance
-        max_v_distance = max(abs(self.top - rect.bottom), abs(self.bottom - rect.top))
+class Bullet(entity):
+    def __init__(self,game,bullet_lst, pos, flip):
+        super().__init__(game,'bullet', pos, [35,15], [0,0])    
+        self.flip=not flip
+        self.s_pos=pos
+        self.bullets=bullet_lst
         
+
+    def update(self):
         
-        # Detect collision
-        h_collid = max_h_distance < (self.w + rect.w)
-        v_collid = max_v_distance < (self.h + rect.h)
-        
-        collid = (h_collid and v_collid)
-        return collid
-    
+        if self.rect().colliderect(self.game.player.rect()):
+            self.game.player.health -= 20
+            self.bullets.remove(self)
+        if self.rect().colliderect(self.game.enemy.rect()):
+            self.game.enemy.health -= 20  
+            self.bullets.remove(self)
+        if  self.flip:
+            self.pos[0] += 35
+        else:
+            self.pos[0] -= 35
+

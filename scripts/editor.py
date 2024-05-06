@@ -2,10 +2,10 @@ import pygame as pg
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import sys
-from classes import *
-from helper_func import *
-from tilemap import *
-from clouds import *
+from scripts.classes import *
+from scripts.helper_func import *
+from scripts.tilemap import *
+from scripts.clouds import *
 
 class Game():
     def __init__(self, w=800, h=600):
