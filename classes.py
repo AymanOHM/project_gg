@@ -78,9 +78,10 @@ class entity:
             self.flip = False
         if movement[0] < 0:
             self.flip = True
+        
 
-        self.velocity[1] = min(5, self.velocity[1] - 0.2)
-
+        self.velocity[1] = min(5, self.velocity[1] - 0.2 )
+        
         if self.collisions['down'] or self.collisions['up']:
             self.velocity[1] = 0
 
@@ -103,7 +104,8 @@ class player(entity):
         
         self.flags = {'air_jump': False,
                       'last_wall_jump': {'right': False, 'left': False},
-                      'friction': False
+                      'friction': False,
+                      'fast_fall' : False
                       }
         self.air_time=0
         self.mov_amount = [0,0]
@@ -183,6 +185,10 @@ class player(entity):
         else:
             gravity_effect = self.gravity
         
+        
+        if self.flags['fast_fall']:
+            self.velocity[1] = self.velocity[1] - 0.5
+            
         self.velocity[1] = max(-10, self.velocity[1] - gravity_effect )
         self.flags['friction'] = False
         
@@ -264,10 +270,10 @@ class player(entity):
         
 class Rect():
     def __init__(self, x, y, w, h):
-        self._x = int(x)
-        self._y = int(y)
-        self._w = int(w)
-        self._h = int(h)
+        self._x = x
+        self._y = y
+        self._w = w
+        self._h = h
     
     @property
     def x(self):
@@ -275,7 +281,7 @@ class Rect():
     
     @x.setter
     def x(self, value):
-        self._x = int(value)
+        self._x = value
     
     @property
     def y(self):
@@ -283,7 +289,7 @@ class Rect():
     
     @y.setter
     def y(self, value):
-        self._y = int(value)
+        self._y = value
     
     @property
     def centerx(self):
@@ -291,7 +297,7 @@ class Rect():
     
     @centerx.setter
     def centerx(self, value):
-        self._x = int(value)
+        self._x = value
     
     @property
     def centery(self):
@@ -299,7 +305,7 @@ class Rect():
     
     @centery.setter
     def centery(self, value):
-        self._y = int(value)
+        self._y = value
     
     @property
     def top(self):
@@ -307,7 +313,7 @@ class Rect():
     
     @top.setter
     def top(self, value):
-        self._y = int(value)
+        self._y = value
     
     @property
     def left(self):
@@ -315,7 +321,7 @@ class Rect():
     
     @left.setter
     def left(self, value):
-        self._x = int(value)
+        self._x = value
     
     @property
     def bottom(self):
@@ -323,7 +329,7 @@ class Rect():
     
     @bottom.setter
     def bottom(self, value):
-        self._y = int(value) - self._h
+        self._y = value - self._h
     
     @property
     def right(self):
@@ -331,7 +337,7 @@ class Rect():
     
     @right.setter
     def right(self, value):
-        self._x = int(value) - self._w
+        self._x = value - self._w
     
     @property
     def w(self):
@@ -339,7 +345,7 @@ class Rect():
     
     @w.setter
     def w(self, value):
-        self._w = int(value)
+        self._w = value
     
     @property
     def h(self):
@@ -347,7 +353,7 @@ class Rect():
     
     @h.setter
     def h(self, value):
-        self._h = int(value)
+        self._h = value
     
     def colliderect(self, rect):
         

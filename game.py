@@ -93,6 +93,7 @@ class Game():
         glutDisplayFunc(self.draw)
         glutKeyboardFunc(self.keyboard_callback)
         glutKeyboardUpFunc(self.keyboardUp_callback)
+        
         glutTimerFunc(1, self.game_timer, 1)
         
         # Enable Texture
@@ -113,12 +114,16 @@ class Game():
             self.movement[1] = True
         if key == b'w':
             self.player.jump()
-
+        if key == b's':
+            self.player.flags['fast_fall'] = True
+            
     def keyboardUp_callback(self, key, x, y):
         if key == b'a':
             self.movement[0] = False
         if key == b'd':
             self.movement[1] = False
+        if key == b's':
+            self.player.flags['fast_fall'] = False
 
 
 g = Game(1366, 768)
