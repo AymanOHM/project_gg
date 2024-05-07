@@ -305,9 +305,9 @@ class gun(entity):
     def fire(self):
         if  glutGet(GLUT_ELAPSED_TIME)-self.b_time>250:
             if not self.flip:
-                self.bullets.new_bullet(self.game,[self.pos[0]+25,self.pos[1]+8],self.flip)
+                self.bullets.new_bullet(self.game,[self.pos[0]+25,self.pos[1]+5],self.flip)
             else:
-                self.bullets.new_bullet(self.game,[self.pos[0]-50,self.pos[1]+8],self.flip)
+                self.bullets.new_bullet(self.game,[self.pos[0]-45,self.pos[1]+5],self.flip)
             self.b_time=glutGet(GLUT_ELAPSED_TIME)
         
 
@@ -349,14 +349,18 @@ class Bullet(entity):
         if self.rect().colliderect(self.game.player.rect()):
             self.game.player.health -= 20
             self.game.player.health_bar.set_health(self.game.player.health)
-
-            
             self.bullets.remove(self)
-        if self.rect().colliderect(self.game.enemy.rect()):
+            return
+            
+        elif self.rect().colliderect(self.game.enemy.rect()):
             self.game.enemy.health -= 20  
             self.game.enemy.health_bar.set_health(self.game.enemy.health)
-
             self.bullets.remove(self)
+            return
+        for tile_rect in self.game.tilemap.p_tiles_around(self.pos):
+            if self.rect().colliderect(tile_rect):
+                self.bullets.remove(self)
+                return
         if  self.flip:
             self.pos[0] += 35
         else:

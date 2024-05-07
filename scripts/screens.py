@@ -12,8 +12,8 @@ class Screen:
     def draw(self):
         rect=Rect(self.pos[0],self.pos[1]+self.offset,self.image[1] - 200,self.image[2] - 200) 
         self.tex.draw(rect.left,rect.right,rect.top,rect.bottom, False)
-        self.offset+= self.shake_dir*3
-        if abs(self.offset)>100:
-            self.offset-= self.shake_dir*3
-            self.shake_dir*-1
+        self.offset+= self.shake_dir*1
+        if abs(self.offset)>50:
+            self.offset-= self.shake_dir*1
+            self.shake_dir*= -1
         self.center=[rect.centerx,rect.centery]

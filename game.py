@@ -61,7 +61,7 @@ class Game():
         
         self.scroll=[0,0]
 
-        self.wel_screen = Screen(self, 'welcome', [-400, 800])
+        self.wel_screen = Screen(self, 'welcome', [-400, 1000])
         self.P1_screen = Screen(self, 'P1', [2000, 300])
         self.P2_screen = Screen(self, 'P2', [-2000, 300])
 
