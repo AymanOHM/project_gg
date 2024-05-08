@@ -362,9 +362,9 @@ class Bullet(entity):
                 self.bullets.remove(self)
                 return
         if  self.flip:
-            self.pos[0] += 35
+            self.pos[0] += 20
         else:
-            self.pos[0] -= 35
+            self.pos[0] -= 20
 
 class Health_bar():
     def __init__(self, x, y, w, h, texture_path, max_health=100):
