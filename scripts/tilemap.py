@@ -49,3 +49,14 @@ class Tilemap:
             rect = Rect(tile['pos'][0] * self.tile_size, tile['pos'][1] * self.tile_size, self.tile_size, self.tile_size)
             self.tex.img = self.game.assets[tile['type']][tile['variant']]
             self.tex.draw(rect.left, rect.right, rect.top, rect.bottom)
+
+
+#   self.tex={
+#    {'grass':{'1':self.game.assets['grass'][0]},
+#     etc.},
+#    etc.  
+# }
+#
+# dictionary O(1)                                                                  
+#tiles_around ---> 9 tiles only
+# draw --> change img --> bind --> render

@@ -42,3 +42,7 @@ class Texture:
             glTexCoord2f(0, 1); glVertex2f(right, top)
             glTexCoord2f(0, 0); glVertex2f(right, bot)
         glEnd()
+
+#EASE of usage
+#   init with image-w-h
+#   draw with left right top bo
