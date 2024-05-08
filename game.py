@@ -14,7 +14,7 @@ class Game():
         
         self.is_alive = False
         self.stage= 0
-        self.movement = [False, False,False, False]
+        self.movement = [False, False, False, False]
 
         self.w=w
         self.h=h
@@ -44,28 +44,17 @@ class Game():
             'welcome': load_image('welcome.png'),
             'P1': load_image('P1.png'),
             'P2': load_image('P2.png')
-            
         }
 
         # OpenGL init
         self.gl_init()
 
-        # Preparations
-        glClearColor(72/255,160/255,211/255,1.0) # Sky color
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0, w, 0, h, -1, 1)
-        
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-        
         self.scroll=[0,0]
 
         self.wel_screen = Screen(self, 'welcome', [-400, 1000])
         self.P1_screen = Screen(self, 'P1', [2000, 300])
         self.P2_screen = Screen(self, 'P2', [-2000, 300])
 
-        
         self.clouds = Clouds(self.assets['clouds'], count=16)
 
         self.gun = Texture(self.assets['gun'])
@@ -84,10 +73,10 @@ class Game():
     def draw(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glLoadIdentity()
 
         scroll=self.scroll
         
+        glLoadIdentity()
         glTranslate(-scroll[0],-scroll[1],0)
         
         self.clouds.update()
@@ -117,12 +106,12 @@ class Game():
     def show_screens(self):
         if self.stage ==0:
             self.wel_screen.draw()
-            self.scroll[0] += ((self.wel_screen.center[0]  -   self.w / 2 )-self.scroll[0])/30
-            self.scroll[1] += ((self.wel_screen.center[1] -  self.h / 2 )-self.scroll[1])/30
+            self.scroll[0] += (self.wel_screen.center[0] -  self.w / 2 -self.scroll[0])/30
+            self.scroll[1] += (self.wel_screen.center[1] -  self.h / 2 -self.scroll[1])/30
         elif self.stage ==1:
             
             self.player = player(self,'player',(900, 600),(35, 55))
-      
+    
             self.enemy = player(self, 'enemy',(80, 600), (35, 55)) 
             self.is_alive=True
             # self.player.reset()
@@ -157,8 +146,19 @@ class Game():
         
         # Enable Texture
         glEnable(GL_TEXTURE_2D)
+        
+        # Activate Transparency
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)  # FOR BLENDING
+        
+        # Preparations
+        glClearColor(72/255,160/255,211/255,1.0) # Sky color
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glOrtho(0, self.w, 0, self.h, -1, 1)
+        
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
 
     def game_timer(self, v):
         self.draw()
@@ -194,24 +194,23 @@ class Game():
                 self.player.fire=True
 
     def keyboardUp_callback(self, key, x, y):
-        if self.is_alive:
-            if key == b'a':
-                self.movement[0] = False
-            if key == b'd':
-                self.movement[1] = False
-            if key == b's':
-                self.enemy.flags['fast_fall'] = False
-                
-            if key == b'4':
-                self.movement[2] = False
-            if key == b'6':
-                self.movement[3] = False
-            if key == b'5':
-                self.player.flags['fast_fall'] = False
-            if key == b' ':
-                self.enemy.fire=False
-            if key == b'0':
-                self.player.fire=False
+        if key == b'a':
+            self.movement[0] = False
+        if key == b'd':
+            self.movement[1] = False
+        if key == b's':
+            self.enemy.flags['fast_fall'] = False
+            
+        if key == b'4':
+            self.movement[2] = False
+        if key == b'6':
+            self.movement[3] = False
+        if key == b'5':
+            self.player.flags['fast_fall'] = False
+        if key == b' ':
+            self.enemy.fire=False
+        if key == b'0':
+            self.player.fire=False
 
 
 g = Game(1360, 800, fullscreen=True)

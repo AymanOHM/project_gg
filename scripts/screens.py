@@ -9,6 +9,7 @@ class Screen:
         self.offset=0
         rect=Rect(self.pos[0],self.pos[1]+self.offset,self.image[1],self.image[2]) 
         self.center=[rect.centerx,rect.centery]
+
     def draw(self):
         rect=Rect(self.pos[0],self.pos[1]+self.offset,self.image[1] - 200,self.image[2] - 200) 
         self.tex.draw(rect.left,rect.right,rect.top,rect.bottom, False)

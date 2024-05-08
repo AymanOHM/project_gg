@@ -40,7 +40,7 @@ class Animation:
     def img(self):
         return self.images[int(self.frame / self.img_duration)]
     
-class Rect():
+class Rect:
     def __init__(self, x, y, w, h):
         self._x = x
         self._y = y
@@ -77,7 +77,7 @@ class Rect():
     
     @centery.setter
     def centery(self, value):
-        self._y = value
+        self._y = value - self._h/2
     
     @property
     def top(self):
