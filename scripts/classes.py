@@ -108,7 +108,7 @@ class player(entity):
         self.fire=False
     
         self.gun=gun(self.game,[self.rect().centerx,self.rect().centery])
-        self.health_bar = Health_bar(pos[0] - 8, pos[1] + 60 , 50, 10, texture_path= game.assets['health_bar'], max_health=self.health,)
+        self.health_bar = Health_bar(pos[0] - 8, pos[1] + 60 , w=50, h=5, texture_path= game.assets['health_bar'], max_health=self.health,)
     
     def reset(self):
         self.health=100
@@ -206,7 +206,7 @@ class player(entity):
         if self.fire:
             self.gun.fire()
         
-        self.texture_update(direction)
+        self.action_update(direction)
         self.gun.flip=self.flip
         if not self.flip:
             self.gun.pos=[self.pos[0]+21,self.pos[1]+15]
@@ -278,7 +278,7 @@ class player(entity):
     def updating_tex(self):
         self.tex = Texture(self.animation.img())
     
-    def texture_update(self, movement):
+    def action_update(self, movement):
         if self.air_time > 1:
             if self.collisions['right'] or self.collisions['left'] :
                 self.set_action('wall_slide')
