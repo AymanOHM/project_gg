@@ -14,7 +14,7 @@ Project_gg is a 2-Player Python game made using opengl. While it's an incomplete
 ```bash
 python game.py
 ```
-- Only Base Python is needed
+- Only Base Python is needed(only for windows)
 ## Controls
 ![alt text](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExanltcWVxcHA3ZGlubmkzNGIxY2QwMXZmdTAxOG15eXM2dWN0YnA1eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/RQYXQB9nuLKXE7jU9I/giphy.gif)
 ### Player 1
