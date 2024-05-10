@@ -130,10 +130,12 @@ class Rect:
     def colliderect(self, rect):
         
         # Calculate max horizontal distance
-        max_h_distance = max(abs(self.right - rect.left), abs(self.left - rect.right))
+        max_h_distance = max(abs(self.right - rect.left),
+                             abs(self.left - rect.right))
         
         # Calculate max vertical distance
-        max_v_distance = max(abs(self.bottom - rect.top), abs(self.top - rect.bottom))
+        max_v_distance = max(abs(self.bottom - rect.top),
+                             abs(self.top - rect.bottom))
         
         
         # Detect collision

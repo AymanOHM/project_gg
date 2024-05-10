@@ -57,7 +57,7 @@ class Game():
 
         self.clouds = Clouds(self.assets['clouds'], count=16)
 
-        self.gun = Texture(self.assets['gun'])
+
 
 
         self.tilemap = Tilemap(game=self, tile_size=45)
@@ -136,13 +136,13 @@ class Game():
         glutInitWindowSize(self.w, self.h)
         glutCreateWindow(b"gg")
         
-       
+        
         # Define functions
         glutDisplayFunc(self.draw)
         glutKeyboardFunc(self.keyboard_callback)
         glutKeyboardUpFunc(self.keyboardUp_callback)
         
-        glutTimerFunc(1, self.game_timer, 1)
+        glutTimerFunc(2, self.game_timer, 2)
         
         # Enable Texture
         glEnable(GL_TEXTURE_2D)
@@ -213,5 +213,5 @@ class Game():
             self.player.fire=False
 
 
-g = Game(1360, 800, fullscreen=True)
+g = Game(1280, 720, fullscreen=True)
 
