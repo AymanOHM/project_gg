@@ -6,15 +6,15 @@ from scripts.texture import *
 # from game import *
 
 class entity:
-
     def __init__(self, game, path, pos, size=[50, 50], speed=[6, 5]):
 
         self.pos = list(pos)
         self.s_pos = self.pos
+        self.size   = list(size)
+
         self.game=game
         self.environment = game.environment
         self.gravity = self.environment['gravity']
-        self.size   = list(size)   
         
         # texture
         self.path = path
@@ -26,7 +26,10 @@ class entity:
         self.speed = list(speed)      # initial speed property
         self.velocity = [speed[0], 0] # interactive speed
 
-        self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
+        self.collisions = {'up': False,
+                           'down': False,
+                           'right': False,
+                           'left': False}
 
         self.action = ''
         self.flip = False
@@ -43,9 +46,13 @@ class entity:
         
     def move(self, map, movement: bool):
         #resetting collisions every movement
-        self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}        
+        self.collisions = {'up':    False,
+                           'down':  False,
+                           'right': False,
+                           'left':  False}        
         
-        mov_amount = (movement[0]*self.velocity[0], movement[1] + self.velocity[1])
+        mov_amount = (movement[0]*self.velocity[0],
+                      movement[1] + self.velocity[1])
         
         self.pos[0] += mov_amount[0]
         entity_rect = self.rect()
@@ -91,9 +98,8 @@ class entity:
 
 
 class player(entity):
-    
     def __init__(self, game, path, pos, size=[50,50], speed=[6,5]):
-        super().__init__(game,path, pos,size,speed)
+        super().__init__(game, path, pos, size, speed)
         
         self.flags = {'air_jump': False,
                       'last_wall_jump': {'right': False, 'left': False},
@@ -108,7 +114,10 @@ class player(entity):
         self.fire=False
     
         self.gun=gun(self.game,[self.rect().centerx,self.rect().centery])
-        self.health_bar = Health_bar(pos[0] - 8, pos[1] + 60 , w=50, h=5, texture_path= game.assets['health_bar'], max_health=self.health,)
+        self.health_bar = Health_bar(x= pos[0] - 8,y= pos[1] + 60 ,
+                                     w=50, h=5,
+                                     texture_path= game.assets['health_bar'],
+                                     max_health=self.health,)
     
     def reset(self):
         self.health=100
