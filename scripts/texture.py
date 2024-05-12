@@ -32,13 +32,9 @@ class Texture:
         self.bind()
         glBegin(GL_QUADS)
         if not direction:
-                                           #x    #y
             glTexCoord2f(0, 0); glVertex2f(left, bot)
-                                           #x    #y+h
             glTexCoord2f(0, 1); glVertex2f(left, top)
-                                           #x+w    #y+h
             glTexCoord2f(1, 1); glVertex2f(right, top)
-                                           #x+w    #y+h
             glTexCoord2f(1, 0); glVertex2f(right, bot)
         else:
             glTexCoord2f(1, 0); glVertex2f(left, bot)
