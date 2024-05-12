@@ -75,10 +75,10 @@ class entity:
             if entity_rect.colliderect(rect):
                 if mov_amount[1] < 0:
                     self.collisions['up'] = True
-                    entity_rect.bottom = rect.top
+                    entity_rect.top = rect.bottom
                 if mov_amount[1] > 0:
                     self.collisions['down'] = True
-                    entity_rect.top = rect.bottom
+                    entity_rect.bottom = rect.top
                 self.pos[1] = entity_rect.y
                 
         if movement[0] > 0:
@@ -173,8 +173,8 @@ class player(entity):
                     
                     # Edit Flags
                     self.collisions['up'] = True
+                    entity_rect.top = rect.bottom
                     
-                    entity_rect.bottom = rect.top
                     
                 if self.mov_amount[1] < 0:
                     # Stop the player
@@ -188,8 +188,8 @@ class player(entity):
                     self.flags['last_wall_jump']['right'] = False
                     self.flags['last_wall_jump']['left'] = False
                     self.air_time = 0
+                    entity_rect.bottom = rect.top
                     
-                    entity_rect.top = rect.bottom
                     
                 self.pos[1] = entity_rect.y
         
