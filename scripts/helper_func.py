@@ -7,7 +7,7 @@ BASE_IMG_PATH = 'data/images/'
 
 def load_image(path):
     temp = pg.image.load(BASE_IMG_PATH + path)
-    img =  pg.image.tostring(temp, "RGBA", False)
+    img =  pg.image.tostring(temp, "RGBA", True)
 
     return [img, temp.get_width(), temp.get_height()]
 
@@ -81,11 +81,11 @@ class Rect:
     
     @property
     def top(self):
-        return self._y
+        return self._y + self._h
     
     @top.setter
     def top(self, value):
-        self._y = value
+        self._y = value - self._h
     
     @property
     def left(self):
@@ -97,12 +97,12 @@ class Rect:
     
     @property
     def bottom(self):
-        return self._y + self._h
+        return self._y
     
     @bottom.setter
     def bottom(self, value):
-        self._y = value - self._h
-    
+        self._y = value
+        
     @property
     def right(self):
         return self._x + self._w
