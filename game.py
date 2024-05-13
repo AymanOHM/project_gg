@@ -175,16 +175,13 @@ class Game():
                 self.scroll[1] += int((self.player.rect().centery - self.display.get_height() / 2 - self.scroll[1])/30)
 
                 # Detecting if the enemy or the player is killed.
-                # print(player_bullet_collision(self.player, self.bullet_group.get_bullets()))
                 if player_bullet_collision(self.player, self.enemy_bullet_group.get_bullets()):
                     self.is_alive = False
                     continue
                 if enemy_bullet_collision(self.enemy, self.bullet_group.get_bullets()):
                     self.is_alive = False
                     continue
-                # if not(player_bullet_collision(self.player, self.bullet_group.get_bullets())) or \
-                #         not(enemy_bullet_collision(self.enemy, self.bullet_group.get_bullets())):
-                #     self.is_alive = False
+
 
                 self.draw()
                 self.clock.tick(60)  # limits FPS to 60
