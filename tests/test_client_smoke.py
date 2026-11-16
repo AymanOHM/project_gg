@@ -16,8 +16,18 @@ from gg_core import Match, PlayerInput, World, load_level  # noqa: E402
 
 
 def test_main_loop_runs_frames_headless():
-    asyncio.run(main(max_frames=30))
+    asyncio.run(main(max_frames=30))  # welcome screen
+    asyncio.run(main(max_frames=30, skip_title=True))
     asyncio.run(main(max_frames=30, debug=True))
+
+
+def test_enter_starts_a_match_from_the_welcome_screen_and_q_quits():
+    pg.init()
+    pg.event.post(pg.event.Event(pg.KEYDOWN, key=pg.K_RETURN))
+    asyncio.run(main(max_frames=5))
+    pg.init()
+    pg.event.post(pg.event.Event(pg.KEYDOWN, key=pg.K_q))
+    asyncio.run(main(max_frames=10_000_000))  # returns at once instead of running forever
 
 
 def played_match(ticks=243):
@@ -107,3 +117,32 @@ def test_debug_renderer_draws_every_match_phase():
         renderer.draw(match.snapshot())
         match.step({"p1": PlayerInput(left=tick > 100)})
     assert seen == {"countdown", "playing", "round_over", "match_over"}
+
+
+def test_title_and_win_screens_cover_the_view_and_clouds_drift():
+    pg.init()
+    pg.display.set_mode((1280, 720))
+    screen = pg.Surface((1280, 720))
+    renderer = SpriteRenderer(screen)
+    level = load_level(LEVEL_PATH)
+    renderer.load_level(level)
+
+    renderer.draw_title()
+    title = screen.copy()
+    before = [cloud["x"] for cloud in renderer.clouds]
+    renderer.draw_title()
+    assert all(cloud["x"] > x for cloud, x in zip(renderer.clouds, before, strict=True))
+
+    match = Match([level], rounds_to_win=1, countdown_ticks=1, round_over_ticks=1)
+    for tick in range(2000):  # p1 walks off the map, so p2 wins
+        match.step({"p1": PlayerInput(left=tick > 100)})
+    assert match.snapshot()["match"]["winner"] == "p2"
+    renderer.draw(match.snapshot())
+    white = [
+        (x, y)
+        for x in range(0, 1280, 4)
+        for y in range(0, 720, 4)
+        if tuple(screen.get_at((x, y)))[:3] == (255, 255, 255)
+    ]
+    assert len(white) > 200, "the win screen's lettering is missing"
+    assert pg.image.tobytes(screen, "RGB") != pg.image.tobytes(title, "RGB")
