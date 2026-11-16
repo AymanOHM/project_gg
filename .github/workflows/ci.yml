@@ -20,3 +20,13 @@ jobs:
       - run: uv run --no-sync ruff check .
       - run: uv run --no-sync ruff format --check .
       - run: uv run --no-sync pytest -q
+
+  web-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: ./web/build.sh
+      - run: test -s build/web-app/build/web/index.html && test -s build/web-app/build/web/web-app.apk
