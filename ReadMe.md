@@ -35,6 +35,10 @@ https://aymanohm.github.io/project_gg/ — two players on one keyboard. Click th
 
 To build it yourself: `./web/build.sh --serve`, then open http://localhost:8000.
 
+## Desktop build
+
+`./desktop/build.sh` packages the game for the system you run it on, into `dist/`. Tagged releases will carry ready-made macOS and Windows zips. They are not code-signed, so the first launch needs "Open anyway".
+
 ## Development
 
 ```bash

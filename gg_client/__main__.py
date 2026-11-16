@@ -113,7 +113,12 @@ async def main(
     pg.quit()
 
 
-if __name__ == "__main__":
+def run() -> None:
+    """Command-line entry point, shared by `python -m gg_client` and the desktop build."""
     args = sys.argv[1:]
     frame_limit = next((int(a) for a in args if a.isdigit()), None)
     asyncio.run(main(frame_limit, debug="--debug" in args, skip_menu="--skip-menu" in args))
+
+
+if __name__ == "__main__":
+    run()

@@ -23,6 +23,7 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted; `meadow`, `cliffs` and `towers` are converted tutorial maps |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
 | `web/` | Browser build: `main.py` (pygbag entry point) and `build.sh`. Output goes to `build/web-app/` (ignored) |
+| `desktop/` | Desktop build: `main.py` (PyInstaller entry point) and `build.sh`. Output goes to `dist/` (ignored) |
 | `tools/` | `record_v1_traces.py` (re-record the traces), `convert_v1_map.py` |
 | `spikes/` | Throwaway experiments. Do not build on them |
 | `docs/ROADMAP.md` | Phases, tasks, gates, backlog. Source of truth. |
@@ -44,7 +45,7 @@ uv run python -m gg_client   # the rewrite: local best of three (Esc quits; --de
 ./web/build.sh --serve       # browser build on http://localhost:8000 (plain static servers do not work locally)
 ```
 
-CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR. Keep it green. `deploy-web.yml` publishes the web build to GitHub Pages on a version tag or when run by hand.
+CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR. Keep it green. `deploy-web.yml` publishes the web build to GitHub Pages on a version tag or when run by hand. `release-desktop.yml` builds macOS and Windows packages and attaches them to the release on a version tag.
 
 ## Rules for `gg_core`
 

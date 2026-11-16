@@ -10,6 +10,9 @@ dependencies = [
 ]
 
 [dependency-groups]
+desktop = [
+    "pyinstaller>=6.22.3",
+]
 dev = [
     "pytest>=8",
     "ruff>=0.8",

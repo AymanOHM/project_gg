@@ -100,7 +100,7 @@ For the next model. Each step is one branch off `phase-2` and one PR into `phase
 
 1. **2.2 menu and options: done** (PR #43). Not done: a pause screen inside a match (Esc goes straight back to the menu).
 2. **2.4 levels: done** (`meadow`, `cliffs`, `towers`; rotation in `LEVEL_ORDER`). Unverified: whether players can reach each other on `cliffs` and `towers`, and the camera does not zoom out when players are far apart.
-3. **2.8 desktop builds** with PyInstaller in CI, as release assets for macOS and Windows.
+3. **2.8 desktop builds: done** (`desktop/build.sh`, `release-desktop.yml`). The zips are attached to a release when a version tag such as `v2.0` is pushed; no such tag exists yet. Builds are unsigned.
 4. **0.8, the rest:** delete assets the game never loads (`web/build.sh` lists what it loads). Keep `data/maps/` until step 2 is done, and `data/sfx/dash.ogg`.
 5. **2.5 dash.** A behaviour change: it adds an input. Update ADR-002 and add tests in `tests/test_rules.py`; the v1 traces must still pass untouched, since no v1 scenario presses dash.
 6. **Milestone:** when 1–3 are merged into `phase-2`, open a PR from `phase-2` to `main` titled "Phase 2 complete" and ask Ayman before merging it.

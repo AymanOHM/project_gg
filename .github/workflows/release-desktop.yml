@@ -1,0 +1,58 @@
+name: Desktop builds
+
+# Builds standalone macOS and Windows versions with PyInstaller.
+# On a version tag the zips are attached to that tag's GitHub release.
+# On pull requests that touch the packaging it only builds and smoke-tests.
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+*"]
+  pull_request:
+    paths: ["desktop/**", ".github/workflows/release-desktop.yml", "pyproject.toml", "uv.lock"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            name: macos-arm64
+          - os: windows-latest
+            name: windows-x64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: ./desktop/build.sh
+      - name: Smoke test (30 frames, no display)
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: ./dist/ProjectGG/ProjectGG 30 --skip-menu
+      - name: Package
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            ditto -c -k --keepParent dist/ProjectGG.app "ProjectGG-${{ matrix.name }}.zip"
+          else
+            7z a "ProjectGG-${{ matrix.name }}.zip" ./dist/ProjectGG
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ProjectGG-${{ matrix.name }}
+          path: ProjectGG-${{ matrix.name }}.zip
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --generate-notes
+          gh release upload "$GITHUB_REF_NAME" "ProjectGG-${{ matrix.name }}.zip" --clobber
