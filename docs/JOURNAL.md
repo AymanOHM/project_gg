@@ -318,3 +318,35 @@ Two details needed care. Both programs load whole folders (`load_images('tiles/g
 **How it was checked.** The tests draw every shipped level with the real renderer, so a missing tile or sprite fails them. CI builds the browser bundle, whose script copies files by name and stops if one is missing. For the original game, a short script confirmed every path `game.py` loads still exists.
 
 **Where to look.** `CREDITS.md` (one row fewer to verify), `web/build.sh` for the list of what the game loads.
+
+---
+
+## 20. Dash: the first rule the original never had
+
+**Problem.** Every rule so far was copied from the original and proven against recordings of it (entry 7). The dash (task 2.5) is new. It needs a new button, new physics and a new animation state, and it must not disturb anything the recordings prove.
+
+**What we did.** Added a sixth button, `dash`. Pressing it moves the player 15 pixels per tick for 8 ticks (120 pixels, a little under three tiles), in the direction held, or the way the player faces if none is held. In the air the player keeps its height while dashing, so a dash crosses gaps. A wall or a jump ends it, and the next dash is available 45 ticks (0.75 s) after the last one began. Player 1 dashes with Left Shift, player 2 with `.`; both can be rebound in the menu.
+
+**How it stays out of the way of the old rules.** All of the dash is behind one condition, `dash_ticks > 0`, and that counter only becomes non-zero when the dash button is pressed. The recordings never press it, so for them every new line is skipped and the 28 scenarios still match tick for tick, with the trace file untouched. That is the check that the change is purely additive: not "the tests were updated", but "the old tests could not tell anything happened".
+
+**How it works, in the order a tick runs.**
+1. *Press detection.* Like jump, dash acts on the tick the button goes from released to held (`dash_was_held`). Holding it does nothing more. This is the rule from entry 6: the client sends what is held, the world works out the moment.
+2. *Start.* `_dash` checks the cooldown, sets `dash_ticks = 8`, stores the direction and records a `dash` event for the sound.
+3. *Each tick of `_move`.* The normal horizontal speed is worked out as always and then overwritten with `dash_direction * 15`. The collision code after it is the same code that stops a running player, so walls work without any new code.
+4. *Height.* If the player was in the air on the previous tick, vertical movement is set to zero for this tick and the falling speed is reset to zero afterwards. If the player was on the ground, the vertical part is left alone.
+
+**Why the ground case is left alone.** This was the part that needed thought. The rules know a player is standing only because, every tick, gravity pulls them a fraction into the floor and the collision pass pushes them back out and sets `hit_down`. If a dash froze vertical movement on the ground too, that contact would vanish, the world would think the player was airborne, and pressing jump during a ground dash would silently use up the double jump. Keeping the tiny fall-and-land cycle running keeps the contact. When a ground dash runs off a ledge, the contact disappears by itself one tick later and the same dash turns into a hovering one.
+
+**Why a jump cancels the dash.** Otherwise the hover rule would erase the jump's upward speed on the next tick and the jump key would appear to do nothing. Cancelling is also the more useful move for a player: dash, then jump out of it.
+
+**Why 15 pixels per tick and not more.** Collision is checked once per tick at the new position. If something moves farther in one tick than the thing it should hit is wide, it can be on one side before the tick and on the other side after, and never overlap: this is called tunnelling. Tiles are 45 pixels, so 15 is safe, and a test dashes at a wall from 85 different distances to prove it. The constant has a comment saying so, because the tempting way to "make the dash feel better" is to raise it.
+
+**The wire format.** `dash` was added at the end of the button list, so it takes bit 5 and the five existing bits keep their meaning. Reading an input from JSON treats a missing button as released. Both choices mean a sender that has never heard of dash still produces valid input. The snapshot gained a new `action` value and a new event type but its version stayed 1, because nothing was renamed or removed; ADR-002 records that and the reasoning.
+
+**Tests that had to change, and why that is acceptable.** Two existing tests failed, both correctly. One used `"dash"` as its example of an unknown button; it is known now, so the example became `"crouch"`. The other asserted that no player ever moves faster than running speed over 10,000 random ticks; the limit is now the dash speed. Neither is a parity test. The rule in `CLAUDE.md` is about never loosening the comparison with the original, and that comparison was not touched.
+
+**The picture.** The art has a one-frame pose called `slide` that the original loaded and never showed. The renderer draws the `dash` action with it (`ACTION_FOLDERS`), so the rules can name the action for what it is without renaming art files.
+
+**What is not known.** Whether it feels good. The numbers are first guesses made without playing: distance, duration, cooldown, and whether a dash should protect from bullets (it does not). All three numbers are constants in one file. The random bot also presses dash now, which changes the games it plays for a given seed; nothing depended on the old ones.
+
+**Where to look.** `gg_core/world.py` (`_dash`, and the `dashing` / `hovering` lines in `_move`), `gg_core/constants.py`, the dash section at the end of `tests/test_rules.py`, `docs/adr/002-core-interfaces.md`.

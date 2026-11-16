@@ -25,7 +25,7 @@ That is the original game. The rewrite, with the same sprites on pygame-ce:
 uv run python -m gg_client            # add --debug to see collision boxes instead of sprites
 ```
 
-Player 1: A/D, W to jump, S to fast fall, Space to fire. Player 2: arrow keys, Right Shift or `/` to fire. Choose PLAY in the menu. A match is best of three. Esc returns to the menu and quits from there. Volume, fullscreen and key bindings are under OPTIONS.
+Player 1: A/D, W to jump, S to fast fall, Space to fire, Left Shift to dash. Player 2: arrow keys, Right Shift or `/` to fire, `.` to dash. Choose PLAY in the menu. A match is best of three. Esc returns to the menu and quits from there. Volume, fullscreen and key bindings are under OPTIONS.
 
 The original Windows-only version, with its vendored libraries, is preserved as the [`v1` release](https://github.com/AymanOHM/project_gg/releases/tag/v1).
 

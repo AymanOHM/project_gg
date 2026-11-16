@@ -4,7 +4,14 @@ import random
 
 from .inputs import PlayerInput
 
-_TOGGLE_CHANCE = {"left": 0.04, "right": 0.04, "jump": 0.15, "fire": 0.02, "fast_fall": 0.03}
+_TOGGLE_CHANCE = {
+    "left": 0.04,
+    "right": 0.04,
+    "jump": 0.15,
+    "fire": 0.02,
+    "fast_fall": 0.03,
+    "dash": 0.02,
+}
 
 
 class RandomBot:

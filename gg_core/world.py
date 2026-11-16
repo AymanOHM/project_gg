@@ -31,7 +31,7 @@ class Player:
     move_x: float = 0.0  # horizontal distance covered in the last tick
     facing: int = 1  # 1 right, -1 left
     health: int = c.MAX_HEALTH
-    action: str = "idle"  # idle | run | jump | wall_slide
+    action: str = "idle"  # idle | run | jump | wall_slide | dash
     action_ticks: int = 0  # ticks since `action` last changed, for animation
     air_time: int = 0
 
@@ -45,6 +45,11 @@ class Player:
     wall_jumped_left: bool = False  # since last landing: keeps air control while touching walls
     wall_jumped_right: bool = False
     jump_was_held: bool = False
+
+    dash_was_held: bool = False
+    dash_ticks: int = 0  # ticks of the current dash still to run; 0 when not dashing
+    dash_direction: int = 1
+    dash_ready_tick: int = 0  # the first tick on which the next dash may start
     last_fire_tick: int = 0
 
     # The gun trails the player by one tick, as in v1: a shot uses the position
@@ -108,6 +113,9 @@ class World:
             if held.jump and not player.jump_was_held:
                 self._jump(player)
             player.jump_was_held = held.jump
+            if held.dash and not player.dash_was_held:
+                self._dash(player, held.direction)
+            player.dash_was_held = held.dash
 
         round_over = False
         for player in self.players.values():
@@ -191,7 +199,17 @@ class World:
             p.air_jump_ready = True
         else:
             return  # no jump available
+        p.dash_ticks = 0  # a jump cuts a dash short
         self._events.append({"type": "jump", "player": p.id})
+
+    def _dash(self, p: Player, direction: int) -> None:
+        """Start a dash in the held direction, or the way the player faces."""
+        if self.tick < p.dash_ready_tick:
+            return
+        p.dash_ticks = c.DASH_TICKS
+        p.dash_direction = direction or p.facing
+        p.dash_ready_tick = self.tick + c.DASH_COOLDOWN_TICKS
+        self._events.append({"type": "dash", "player": p.id})
 
     def _move(self, p: Player, direction: int, fast_fall: bool) -> None:
         w, h, size = c.PLAYER_WIDTH, c.PLAYER_HEIGHT, self.level.tile_size
@@ -206,6 +224,17 @@ class World:
         else:
             p.move_x = direction * c.RUN_SPEED
         move_y = p.vy
+
+        # A dash replaces the horizontal speed. In the air it also holds the
+        # player level; on the ground the usual falling-and-landing continues,
+        # so the floor contact is kept. `hit_down` is still last tick's here.
+        dashing = p.dash_ticks > 0
+        hovering = dashing and not p.hit_down
+        if dashing:
+            p.dash_ticks -= 1
+            p.move_x = p.dash_direction * c.DASH_SPEED
+        if hovering:
+            move_y = 0
 
         p.hit_left = p.hit_right = p.hit_up = p.hit_down = False
         against_wall = False
@@ -243,6 +272,10 @@ class World:
         if fast_fall:
             p.vy = p.vy - c.FAST_FALL_ACCEL
         p.vy = max(-c.MAX_FALL_SPEED, p.vy - gravity)
+        if hovering:
+            p.vy = 0
+        if against_wall:
+            p.dash_ticks = 0  # a wall ends a dash
 
         if p.move_x > 0:
             p.facing = 1
@@ -251,7 +284,9 @@ class World:
 
         p.action_ticks += 1
         p.air_time += 1
-        if p.air_time > 1:
+        if dashing:
+            action = "dash"
+        elif p.air_time > 1:
             action = "wall_slide" if p.hit_left or p.hit_right else "jump"
         elif direction != 0:
             action = "run"

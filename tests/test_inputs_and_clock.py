@@ -10,7 +10,7 @@ def test_direction():
     assert PlayerInput().direction == 0
 
 
-@pytest.mark.parametrize("bits", range(32))
+@pytest.mark.parametrize("bits", range(64))
 def test_bits_and_dict_round_trip(bits):
     held = PlayerInput.from_bits(bits)
     assert held.to_bits() == bits
@@ -18,7 +18,7 @@ def test_bits_and_dict_round_trip(bits):
 
 
 def test_from_dict_tolerates_missing_and_unknown_keys():
-    assert PlayerInput.from_dict({"jump": 1, "dash": True}) == PlayerInput(jump=True)
+    assert PlayerInput.from_dict({"jump": 1, "crouch": True}) == PlayerInput(jump=True)
 
 
 def test_fixed_step_runs_one_tick_per_sixtieth_of_a_second():

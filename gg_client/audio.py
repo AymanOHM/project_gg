@@ -16,6 +16,7 @@ EVENT_SOUNDS = {
     "jump": ("jump.ogg", 0.7),
     "shot": ("shoot.ogg", 0.4),
     "hit": ("hit.ogg", 0.8),
+    "dash": ("dash.ogg", 0.3),
 }
 MUSIC_VOLUME = 0.5
 AMBIENCE_VOLUME = 0.2
