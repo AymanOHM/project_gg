@@ -7,7 +7,8 @@ Options:
 Default keys (change them under Options > Controls):
   p1: A/D move, W jump, S fast fall, Space fire.
   p2: arrows move/jump/fast fall, Right Shift or / fire (numpad 4/6/8/5/0 also work).
-A match is best of three. Esc leaves a match for the menu; Esc on the menu quits.
+A match is best of three. Esc pauses a match (resume, options, or back to the menu);
+Esc on the main menu quits.
 
 The loop is async with one `await` per frame, which is what pygbag needs to run
 the same file in a browser.
@@ -24,7 +25,7 @@ from gg_core import MATCH_OVER, FixedStep, Match, load_level
 from .audio import Audio
 from .debug_renderer import DebugRenderer
 from .keyboard import read_inputs
-from .menu import PLAY, QUIT, Menu, draw_menu
+from .menu import LEAVE, PLAY, QUIT, RESUME, Menu, draw_menu
 from .settings import VOLUME_STEPS, Settings
 from .sprite_renderer import SpriteRenderer
 
@@ -32,6 +33,7 @@ LEVELS_DIR = Path(__file__).resolve().parent.parent / "data" / "levels"
 LEVEL_PATH = LEVELS_DIR / "arena.json"
 LEVEL_ORDER = ("arena", "meadow", "cliffs", "towers")  # one per round, in this order
 WINDOW_SIZE = (1280, 720)
+PAUSE_DIM = (0, 0, 0, 120)  # drawn over the frozen game behind the pause menu
 
 
 def apply_settings(settings: Settings, audio: Audio) -> None:
@@ -68,6 +70,9 @@ async def main(
     # No match means the menu is showing. The debug renderer has no menu.
     match = Match(levels) if debug or skip_menu else None
     fixed = FixedStep()
+    paused = False  # a match exists but is frozen behind the pause menu
+    dim = pg.Surface(WINDOW_SIZE, pg.SRCALPHA)
+    dim.fill(PAUSE_DIM)
 
     frames = 0
     running = True
@@ -77,20 +82,30 @@ async def main(
                 running = False
             elif event.type != pg.KEYDOWN:
                 continue
-            elif match is None:
+            elif match is None or paused:
                 action = menu.handle_key(event.key)
                 if action == PLAY:
                     match = Match(levels)
                 elif action == QUIT:
                     running = False
+                elif action == RESUME:
+                    paused = False
+                elif action == LEAVE:
+                    match, paused = None, False
                 if menu.changed:
                     apply_settings(settings, audio)
                     if save:
                         settings.save()
                     menu.changed = False
             elif event.key == pg.K_ESCAPE:
-                match = None if not debug else match
-                running = running and not debug
+                if debug:  # the debug view has no menus
+                    running = False
+                elif match.phase == MATCH_OVER:
+                    match = None
+                    menu.open("main")
+                else:
+                    paused = True
+                    menu.open("pause")
             elif event.key == pg.K_RETURN and match.phase == MATCH_OVER:
                 match = Match(levels)
 
@@ -99,7 +114,7 @@ async def main(
             draw_menu(screen, menu, renderer.draw_backdrop())
         else:
             inputs = read_inputs(pg.key.get_pressed(), settings.keymap)
-            for _ in range(steps):
+            for _ in range(0 if paused else steps):  # paused: time passes, the game does not
                 match.step(inputs)
                 audio.play_events(match.snapshot())
             snapshot = match.snapshot()
@@ -107,6 +122,9 @@ async def main(
                 shown_level = snapshot["match"]["level"]
                 renderer.load_level(by_name[shown_level])
             renderer.draw(snapshot, fixed.alpha)
+            if paused:
+                screen.blit(dim, (0, 0))
+                draw_menu(screen, menu)
         pg.display.flip()
         frames += 1
         await asyncio.sleep(0)

@@ -8,7 +8,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 import pygame as pg  # noqa: E402
 
 from gg_client.keyboard import KEYMAP, read_inputs  # noqa: E402
-from gg_client.menu import PLAY, QUIT, Menu, draw_menu  # noqa: E402
+from gg_client.menu import LEAVE, PLAY, QUIT, RESUME, Menu, draw_menu  # noqa: E402
 from gg_client.settings import Settings  # noqa: E402
 from gg_core import PlayerInput  # noqa: E402
 
@@ -110,8 +110,12 @@ def test_every_menu_screen_draws():
         [pg.K_DOWN, pg.K_RETURN],
         [pg.K_DOWN, pg.K_DOWN, pg.K_DOWN, pg.K_RETURN],
         [pg.K_RETURN],
+        "pause",
     ):
-        press(menu, *keys)
+        if keys == "pause":
+            menu.open("pause")
+        else:
+            press(menu, *keys)
         screen.fill((72, 160, 211))
         draw_menu(screen, menu)
         white = sum(
@@ -120,3 +124,21 @@ def test_every_menu_screen_draws():
             for y in range(0, 720, 3)
         )
         assert white > 300
+
+
+def test_pause_menu_resumes_leaves_and_returns_from_options():
+    menu = Menu(Settings())
+    menu.open("pause")
+    assert menu.title() == "PAUSED"
+    assert press(menu, pg.K_RETURN) == RESUME
+    assert press(menu, pg.K_ESCAPE) == RESUME
+
+    press(menu, pg.K_DOWN, pg.K_RETURN)  # OPTIONS
+    assert menu.screen == "options"
+    press(menu, pg.K_ESCAPE)
+    assert menu.screen == "pause"  # back to the pause menu, not the main menu
+
+    assert press(menu, pg.K_DOWN, pg.K_DOWN, pg.K_RETURN) == LEAVE
+    assert menu.screen == "main" and menu.index == 0
+    press(menu, pg.K_DOWN, pg.K_RETURN, pg.K_ESCAPE)  # options and back, now from the main menu
+    assert menu.screen == "main"

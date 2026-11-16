@@ -45,6 +45,38 @@ def test_volume_changed_in_the_menu_is_applied_and_not_saved_for_injected_settin
     assert settings.music_volume == 3
 
 
+def count_match_steps(monkeypatch):
+    calls = []
+    real_step = Match.step
+    monkeypatch.setattr(
+        Match, "step", lambda self, inputs: (calls.append(1), real_step(self, inputs))
+    )
+    return calls
+
+
+def test_escape_pauses_a_match_and_the_game_stands_still(monkeypatch):
+    pg.init()
+    calls = count_match_steps(monkeypatch)
+    asyncio.run(main(max_frames=20, skip_menu=True, settings=Settings()))
+    assert calls, "an unpaused match should advance"
+    calls.clear()
+    pg.init()  # main() shut pygame down on its way out
+    press(pg.K_ESCAPE)
+    asyncio.run(main(max_frames=20, skip_menu=True, settings=Settings()))
+    assert calls == []
+    pg.init()  # main() shut pygame down on its way out
+    press(pg.K_ESCAPE, pg.K_ESCAPE)  # pause, then resume
+    asyncio.run(main(max_frames=20, skip_menu=True, settings=Settings()))
+    assert calls
+
+
+def test_pause_menu_leads_back_to_the_main_menu():
+    pg.init()
+    # Pause, QUIT TO MENU, then up from PLAY wraps to QUIT: the loop ends by itself.
+    press(pg.K_ESCAPE, pg.K_DOWN, pg.K_DOWN, pg.K_RETURN, pg.K_UP, pg.K_RETURN)
+    asyncio.run(main(max_frames=10_000_000, skip_menu=True, settings=Settings()))
+
+
 def played_match(ticks=243):
     """p1 crosses the arena to p2's platform and opens fire; one bullet is in the air."""
     level = load_level(LEVEL_PATH)
