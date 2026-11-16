@@ -395,3 +395,28 @@ Two details needed care. Both programs load whole folders (`load_images('tiles/g
 **What it does not tell us.** Reachable is not the same as fun, and a route a search finds in 600 attempts may be one a person finds annoying. It also says nothing about the camera, which is the next entry's subject.
 
 **Where to look.** `tests/test_level_reachability.py`.
+
+---
+
+## 23. A camera that widens, and why it draws big and shrinks
+
+**Problem.** The camera followed the midpoint between the players at a fixed size of 1,280 by 720 world pixels. On `cliffs` and `towers` the players start about 1,200 pixels apart, so both stood at the very edges of the screen, and a player who climbed could leave the picture altogether.
+
+**What we did.** The camera now has a `scale`: how many world pixels one screen pixel covers. It is 1 while the players are close. When they are far apart it grows, up to 1.6, until both are at least 250 pixels inside the left and right edges and 200 inside the top and bottom. It eases towards its target by 1/30 of the gap per frame, the same rule the original used for scrolling, so zoom and scroll move together.
+
+**The design question: how do you draw a zoomed-out picture?** Entry 11 explained that every image is scaled once when it is loaded, and that `draw` only copies pixels. A zoom seems to break that: at scale 1.3 every tile should be 35 pixels, at 1.31 a little less, and the scale changes every frame while it eases. Three options:
+- *Rescale every sprite whenever the scale changes.* That is the per-frame image work entry 11 removed, and it would fail that entry's test.
+- *Only allow a few fixed zoom levels and cache sprites for each.* No per-frame scaling, but the camera would jump between levels, and tiles drawn at rounded sizes leave one-pixel seams.
+- *Draw the world at normal size onto a larger surface, then shrink the whole picture once.* This is what we did.
+
+**How it works.** The renderer keeps one surface of 2,048 by 1,152 pixels (1.6 screens). Each frame it asks the camera for the view size, takes that much of the big surface (`subsurface`, which is a window onto the same pixels, not a copy), and draws tiles, players and bullets on it exactly as before, with the same cached images. Then one call, `pygame.transform.smoothscale`, shrinks that picture onto the screen. The score and countdown are drawn afterwards, straight onto the screen, so the text stays the same size and stays sharp.
+
+The camera's `to_screen` now answers in the coordinates of the view, not of the screen. At scale 1 those are the same thing, which is why none of the drawing code had to learn about zoom: it changed from "blit to the screen" to "blit to the canvas", and the canvas is the screen itself whenever the scale is 1.
+
+**What it costs.** One shrink of up to 2.4 million pixels per frame. Measured on the Mac with a fake display: 0.5 ms per frame at scale 1 and about 2.5 ms zoomed out, against a budget of 16.7 ms at 60 frames per second. When the players are close the cost is zero, because the shrink is skipped. The browser was not measured; WebAssembly is slower, so that is the place to look if the web build stutters on the wide levels. The limit is one constant, `MAX_ZOOM_OUT`.
+
+**Why stop at 1.6.** The sprites are small pixel art. Past a certain point the players are a few pixels tall and the game is unreadable, and the cost grows with the square of the scale. Beyond the limit the camera behaves as before: it centres on the midpoint and the players may leave the edges.
+
+**A small trap.** Easing never quite arrives: the scale would hover at 1.0000001 for ever and the renderer would keep shrinking a picture by nothing. The camera snaps to exactly 1 once it is within a thousandth.
+
+**Where to look.** `gg_client/camera.py`, the top of `SpriteRenderer.draw` in `gg_client/sprite_renderer.py`, and the three camera tests at the end of `tests/test_client_smoke.py`.

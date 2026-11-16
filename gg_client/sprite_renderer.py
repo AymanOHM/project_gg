@@ -33,6 +33,7 @@ CLOUD_COUNT = 16
 CLOUD_SCALE = 8
 CLOUD_AREA = 2000  # clouds start somewhere in a square this size, in world pixels
 CLOUD_WRAP = (-800, 2800)  # v1 let clouds drift away for good; here they come back round
+MAX_ZOOM_OUT = 1.6  # the view can widen to 1.6 screens when the players are far apart
 SCREEN_BOB = 20  # full-screen images drift up and down by this many pixels
 
 
@@ -53,7 +54,12 @@ def _both_ways(image: pg.Surface) -> dict[int, pg.Surface]:
 class SpriteRenderer:
     def __init__(self, screen: pg.Surface):
         self.screen = screen
-        self.camera = Camera(screen.get_size())
+        self.camera = Camera(screen.get_size(), max_scale=MAX_ZOOM_OUT)
+        # The world is drawn on `canvas`. That is the screen itself, or, while
+        # zoomed out, part of this larger surface that is then shrunk onto the screen.
+        width, height = screen.get_size()
+        self._wide = pg.Surface((round(width * MAX_ZOOM_OUT), round(height * MAX_ZOOM_OUT)))
+        self.canvas = screen
         self.font = pg.font.Font(None, 36)
         self.big_font = pg.font.Font(None, 160)
         self.level: Level | None = None
@@ -96,9 +102,13 @@ class SpriteRenderer:
                 self.tiles[key] = _load(IMAGES / "tiles" / tile.type / f"{tile.variant}.png", size)
 
     def draw(self, snapshot: dict, alpha: float = 0.0) -> None:
-        screen, camera = self.screen, self.camera
+        camera = self.camera
         camera.follow(snapshot["players"])
-        screen.fill(SKY)
+        zoomed_out = camera.scale > 1
+        self.canvas = canvas = (
+            self._wide.subsurface((0, 0), camera.view_size) if zoomed_out else self.screen
+        )
+        canvas.fill(SKY)
         self._draw_clouds()
         self._draw_tiles()
         for p in snapshot["players"]:
@@ -106,12 +116,15 @@ class SpriteRenderer:
         for b in snapshot["bullets"]:
             rect = camera.to_screen(b["x"], b["y"], b["w"], b["h"])
             # The bullet image points left, so it is mirrored when flying right.
-            screen.blit(self._bullet_images(b["w"], b["h"])[-b["dir"]], rect)
-        self._draw_hud(snapshot)
+            canvas.blit(self._bullet_images(b["w"], b["h"])[-b["dir"]], rect)
+        if zoomed_out:
+            pg.transform.smoothscale(canvas, self.screen.get_size(), self.screen)
+        self._draw_hud(snapshot)  # always at full size, on the screen
 
     def draw_backdrop(self) -> float:
         """Sky and clouds with nothing else, for the menu to draw on. Returns the
         current bob offset so the menu moves with the same rhythm as the win screens."""
+        self.canvas = self.screen
         self.screen.fill(SKY)
         self._draw_clouds()
         return self._advance_bob()
@@ -124,7 +137,7 @@ class SpriteRenderer:
                 cloud["x"] = low
             image = cloud["image"]
             rect = self.camera.to_screen(cloud["x"], cloud["y"], *image.get_size())
-            self.screen.blit(image, rect)
+            self.canvas.blit(image, rect)
 
     def _advance_bob(self) -> float:
         self._bob += self._bob_step
@@ -138,20 +151,20 @@ class SpriteRenderer:
 
     def _draw_tiles(self) -> None:
         size = self.level.tile_size
-        visible = self.screen.get_rect()
+        visible = self.canvas.get_rect()
         for tile in self.level.tiles:
             rect = self.camera.to_screen(tile.x * size, tile.y * size, size, size)
             if rect.colliderect(visible):
-                self.screen.blit(self.tiles[(tile.type, tile.variant)], rect)
+                self.canvas.blit(self.tiles[(tile.type, tile.variant)], rect)
 
     def _draw_player(self, p: dict) -> None:
         frames = self._player_frames(p)
         frame = frames[(p["action_ticks"] // FRAME_TICKS[p["action"]]) % len(frames)]
-        self.screen.blit(frame[p["facing"]], self.camera.to_screen(p["x"], p["y"], p["w"], p["h"]))
+        self.canvas.blit(frame[p["facing"]], self.camera.to_screen(p["x"], p["y"], p["w"], p["h"]))
 
         dx, dy = GUN_OFFSET_RIGHT if p["facing"] > 0 else GUN_OFFSET_LEFT
         gun_rect = self.camera.to_screen(p["x"] + dx, p["y"] + dy, *GUN_SIZE)
-        self.screen.blit(self.gun[p["facing"]], gun_rect)
+        self.canvas.blit(self.gun[p["facing"]], gun_rect)
 
         health = max(0, p["health"]) / p["max_health"]
         bar = self.camera.to_screen(
@@ -160,7 +173,7 @@ class SpriteRenderer:
             HEALTH_BAR["w"] * health,
             HEALTH_BAR["h"],
         )
-        pg.draw.rect(self.screen, self.health_colour, bar)
+        pg.draw.rect(self.canvas, self.health_colour, bar)
 
     def _player_frames(self, p: dict) -> list[dict[int, pg.Surface]]:
         """Animation frames for this player's current action, loaded on first use."""
