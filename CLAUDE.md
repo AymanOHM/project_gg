@@ -19,7 +19,7 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `game.py`, `scripts/`, `map.json` | The original v1 game. Frozen reference code: do not refactor or lint it. It is deleted once `gg_client` replaces it. |
 | `data/` | Art, audio, maps |
 | `gg_core/` | Headless rules: `World` (one round), `Match` (rounds, countdown, score), inputs, level loader, fixed-step clock, bots |
-| `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `Audio` (music and effects from snapshot events), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
+| `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `Audio` (music and effects from snapshot events), `Menu` and `Settings` (menu, options, saved key bindings), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
 | `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
 | `web/` | Browser build: `main.py` (pygbag entry point) and `build.sh`. Output goes to `build/web-app/` (ignored) |
