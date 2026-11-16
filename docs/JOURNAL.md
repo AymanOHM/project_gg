@@ -291,3 +291,30 @@ Other documents answer different questions: `docs/ROADMAP.md` says what is plann
 **Known limits.** The builds are not code-signed. macOS will say the app is from an unidentified developer (right-click, Open, the first time) and Windows SmartScreen may warn. Signing needs paid developer certificates.
 
 **Where to look.** `desktop/build.sh`, `desktop/main.py`, `.github/workflows/release-desktop.yml`.
+
+---
+
+## 19. Deleting assets nothing loads
+
+**Problem.** `data/images` held 178 files. The rewrite loads 98 of them and the original game one more. The rest were leftovers: a 14-file health bar pack, the tutorial's particles and enemy sprites, a second copy of the run animation, earlier drafts of the bullet and gun pictures. Every one of them is a file whose licence someone has to check before a public release (task 0.8), and a file a new reader has to wonder about.
+
+**What we did.** Removed 79 files with `git rm`. `data/images` went from 872 KB to 488 KB.
+
+**How "unused" was established.** By reading the code, not by guessing from file names. Three programs load images, and a file had to be unused by all three:
+- the rewrite (`gg_client/sprite_renderer.py`), whose list is mirrored in `web/build.sh` and `desktop/build.sh`;
+- the original game (`game.py`), which is still in the repo until Ayman has compared the two;
+- the original's helper scripts in `scripts/`.
+
+That is why `welcome.png` stayed: the rewrite replaced it with the menu, but the original still opens it and would crash at start-up without it. It goes when the original goes (PR #38).
+
+Two details needed care. Both programs load whole folders (`load_images('tiles/grass')`, `glob("*.png")`), so a file is "used" if its folder is, even though its name appears nowhere in the code. And `tiles/spawners` looked used, because the word appears in the tutorial maps, but only as markers that the converter turns into spawn points; no level draws one.
+
+**What was kept on purpose.**
+- `data/maps/`: the source the three converted levels were made from. Nobody has play-tested those levels yet, and if spawns have to move, the converter needs its input. `tests/test_maps.py` also reads them.
+- `data/sfx/dash.ogg`: not loaded yet, but the dash (task 2.5) will use it.
+
+**Why this is safe, and what it does not do.** Nothing is lost: every deleted file is still in the `v1` tag and in history, and `git checkout v1 -- path` brings one back. For the same reason the repository does not get smaller to clone. Git keeps every version of every file ever committed; deleting a file only removes it from the current snapshot. Shrinking a repo means rewriting history, which entry 1 explains was ruled out.
+
+**How it was checked.** The tests draw every shipped level with the real renderer, so a missing tile or sprite fails them. CI builds the browser bundle, whose script copies files by name and stops if one is missing. For the original game, a short script confirmed every path `game.py` loads still exists.
+
+**Where to look.** `CREDITS.md` (one row fewer to verify), `web/build.sh` for the list of what the game loads.
