@@ -22,7 +22,8 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | [#33](https://github.com/AymanOHM/project_gg/pull/33) | `test/readable-rules` | 1.8 | Based on #32. Tests only; `gg_core` unchanged |
 | [#34](https://github.com/AymanOHM/project_gg/pull/34) | `feat/match-rounds` | 2.1 (rules part) | Based on #33. `Match`: countdown, best of three, score, level rotation |
 | [#35](https://github.com/AymanOHM/project_gg/pull/35) | `docs/adr-001-and-roadmap` | 0.1 | Based on #34. ADR-001 accepted; proposals B1–B14 applied to the roadmap |
-| #36 | `feat/sprite-renderer` | 1.6a | Based on #35. `SpriteRenderer`; view a frame by running the client |
+| [#36](https://github.com/AymanOHM/project_gg/pull/36) | `feat/sprite-renderer` | 1.6a | Based on #35. `SpriteRenderer`; view a frame by running the client |
+| #37 | `feat/clouds-and-screens` | 1.6b | Based on #36. Clouds, welcome screen, win screens |
 
 #27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
 

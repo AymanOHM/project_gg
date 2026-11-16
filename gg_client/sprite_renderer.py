@@ -3,6 +3,7 @@
 Every image is loaded, scaled and mirrored once, in `__init__`. `draw` only blits.
 """
 
+import random
 from pathlib import Path
 
 import pygame as pg
@@ -24,6 +25,13 @@ GUN_SIZE = (15, 13)
 GUN_OFFSET_RIGHT = (21, 15)  # from the player's bottom-left corner, facing right
 GUN_OFFSET_LEFT = (0, 15)
 HEALTH_BAR = {"dx": -8, "dy": 60, "w": 50, "h": 5}
+
+# Clouds are decoration, so they live here and not in the rules (v1's values).
+CLOUD_COUNT = 16
+CLOUD_SCALE = 8
+CLOUD_AREA = 2000  # clouds start somewhere in a square this size, in world pixels
+CLOUD_WRAP = (-800, 2800)  # v1 let clouds drift away for good; here they come back round
+SCREEN_BOB = 20  # full-screen images drift up and down by this many pixels
 
 
 def _load(path: Path, size: tuple[int, int]) -> pg.Surface:
@@ -54,6 +62,29 @@ class SpriteRenderer:
         self._bullet_file = IMAGES / "bullet3.png"
         self.bullets: dict[tuple[int, int], dict[int, pg.Surface]] = {}
         self.health_colour = pg.image.load(IMAGES / "health_simple.png").get_at((0, 0))
+        self.screens = {
+            name: _load(IMAGES / f"{name}.png", screen.get_size())
+            for name in ("welcome", "P1", "P2")
+        }
+        self._bob, self._bob_step = 0.0, 0.5
+        self.clouds = self._make_clouds()
+
+    @staticmethod
+    def _make_clouds() -> list[dict]:
+        images = []
+        for file in sorted((IMAGES / "clouds").glob("*.png")):
+            image = pg.image.load(file).convert_alpha()
+            size = (image.get_width() * CLOUD_SCALE, image.get_height() * CLOUD_SCALE)
+            images.append(pg.transform.scale(image, size))
+        return [
+            {
+                "x": random.random() * CLOUD_AREA,
+                "y": random.random() * CLOUD_AREA,
+                "speed": random.random() * 0.2 + 0.05,
+                "image": random.choice(images),
+            }
+            for _ in range(CLOUD_COUNT)
+        ]
 
     def load_level(self, level: Level) -> None:
         self.level = level
@@ -67,6 +98,7 @@ class SpriteRenderer:
         screen, camera = self.screen, self.camera
         camera.follow(snapshot["players"])
         screen.fill(SKY)
+        self._draw_clouds()
         self._draw_tiles()
         for p in snapshot["players"]:
             self._draw_player(p)
@@ -75,6 +107,29 @@ class SpriteRenderer:
             # The bullet image points left, so it is mirrored when flying right.
             screen.blit(self._bullet_images(b["w"], b["h"])[-b["dir"]], rect)
         self._draw_hud(snapshot)
+
+    def draw_title(self) -> None:
+        """The welcome screen, shown before a match starts."""
+        self.screen.fill(SKY)
+        self._draw_clouds()
+        self._draw_screen("welcome")
+
+    def _draw_clouds(self) -> None:
+        low, high = CLOUD_WRAP
+        for cloud in self.clouds:
+            cloud["x"] += cloud["speed"]
+            if cloud["x"] > high:
+                cloud["x"] = low
+            image = cloud["image"]
+            rect = self.camera.to_screen(cloud["x"], cloud["y"], *image.get_size())
+            self.screen.blit(image, rect)
+
+    def _draw_screen(self, name: str) -> None:
+        """A full-screen image that bobs up and down, as v1's screens did."""
+        self._bob += self._bob_step
+        if abs(self._bob) >= SCREEN_BOB:
+            self._bob_step = -self._bob_step
+        self.screen.blit(self.screens[name], (0, round(self._bob)))
 
     def _draw_tiles(self) -> None:
         size = self.level.tile_size
@@ -134,8 +189,7 @@ class SpriteRenderer:
             text = f"{winner.upper()} takes the round" if winner else "Draw"
             self._text(self.font, text, (width // 2, height // 3))
         elif match["phase"] == "match_over":
-            text = f"{match['winner'].upper()} wins the match. Enter to play again"
-            self._text(self.font, text, (width // 2, height // 3))
+            self._draw_screen({"p1": "P1", "p2": "P2"}[match["winner"]])
 
     def _text(self, font: pg.font.Font, text: str, center: tuple[int, int]) -> None:
         shadow = font.render(text, True, (20, 30, 50))
