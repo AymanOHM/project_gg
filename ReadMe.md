@@ -25,13 +25,13 @@ That is the original game. The rewrite, with the same sprites on pygame-ce:
 uv run python -m gg_client            # add --debug to see collision boxes instead of sprites
 ```
 
-Player 1: A/D, W to jump, S to fast fall, Space to fire. Player 2: arrow keys, Right Shift or `/` to fire. A match is best of three; Enter starts a new one, Esc or Q quits.
+Player 1: A/D, W to jump, S to fast fall, Space to fire. Player 2: arrow keys, Right Shift or `/` to fire. Choose PLAY in the menu. A match is best of three. Esc returns to the menu and quits from there. Volume, fullscreen and key bindings are under OPTIONS.
 
 The original Windows-only version, with its vendored libraries, is preserved as the [`v1` release](https://github.com/AymanOHM/project_gg/releases/tag/v1).
 
 ## Play in a browser
 
-https://aymanohm.github.io/project_gg/ — two players on one keyboard. Click the page once, then press Enter. The first load downloads about 11 MB.
+https://aymanohm.github.io/project_gg/ — two players on one keyboard. Click the page once, then choose PLAY. The first load downloads about 11 MB.
 
 To build it yourself: `./web/build.sh --serve`, then open http://localhost:8000.
 

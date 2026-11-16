@@ -12,23 +12,35 @@ from gg_client.__main__ import LEVEL_PATH, main  # noqa: E402
 from gg_client.audio import Audio  # noqa: E402
 from gg_client.debug_renderer import SKY, DebugRenderer  # noqa: E402
 from gg_client.keyboard import KEYMAP, read_inputs  # noqa: E402
+from gg_client.menu import Menu, draw_menu  # noqa: E402
+from gg_client.settings import Settings  # noqa: E402
 from gg_client.sprite_renderer import SpriteRenderer  # noqa: E402
 from gg_core import Match, PlayerInput, World, load_level  # noqa: E402
 
 
 def test_main_loop_runs_frames_headless():
-    asyncio.run(main(max_frames=30))  # welcome screen
-    asyncio.run(main(max_frames=30, skip_title=True))
-    asyncio.run(main(max_frames=30, debug=True))
+    asyncio.run(main(max_frames=30, settings=Settings()))  # menu
+    asyncio.run(main(max_frames=30, skip_menu=True, settings=Settings()))
+    asyncio.run(main(max_frames=30, debug=True, settings=Settings()))
 
 
-def test_enter_starts_a_match_from_the_welcome_screen_and_q_quits():
+def press(*keys):
+    for key in keys:
+        pg.event.post(pg.event.Event(pg.KEYDOWN, key=key))
+
+
+def test_menu_keys_reach_the_menu_and_quit_ends_the_loop():
     pg.init()
-    pg.event.post(pg.event.Event(pg.KEYDOWN, key=pg.K_RETURN))
-    asyncio.run(main(max_frames=5))
+    press(pg.K_UP, pg.K_RETURN)  # up from PLAY wraps to QUIT
+    asyncio.run(main(max_frames=10_000_000, settings=Settings()))  # returns at once
+
+
+def test_volume_changed_in_the_menu_is_applied_and_not_saved_for_injected_settings(tmp_path):
     pg.init()
-    pg.event.post(pg.event.Event(pg.KEYDOWN, key=pg.K_q))
-    asyncio.run(main(max_frames=10_000_000))  # returns at once instead of running forever
+    settings = Settings()
+    press(pg.K_DOWN, pg.K_RETURN, pg.K_LEFT, pg.K_LEFT)  # OPTIONS, then music down twice
+    asyncio.run(main(max_frames=5, settings=settings))
+    assert settings.music_volume == 3
 
 
 def played_match(ticks=243):
@@ -120,7 +132,7 @@ def test_debug_renderer_draws_every_match_phase():
     assert seen == {"countdown", "playing", "round_over", "match_over"}
 
 
-def test_title_and_win_screens_cover_the_view_and_clouds_drift():
+def test_menu_and_win_screens_are_drawn_and_clouds_drift():
     pg.init()
     pg.display.set_mode((1280, 720))
     screen = pg.Surface((1280, 720))
@@ -128,10 +140,10 @@ def test_title_and_win_screens_cover_the_view_and_clouds_drift():
     level = load_level(LEVEL_PATH)
     renderer.load_level(level)
 
-    renderer.draw_title()
+    draw_menu(screen, Menu(Settings()), renderer.draw_backdrop())
     title = screen.copy()
     before = [cloud["x"] for cloud in renderer.clouds]
-    renderer.draw_title()
+    renderer.draw_backdrop()
     assert all(cloud["x"] > x for cloud, x in zip(renderer.clouds, before, strict=True))
 
     match = Match([level], rounds_to_win=1, countdown_ticks=1, round_over_ticks=1)

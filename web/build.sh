@@ -19,7 +19,7 @@ cp -R "$root/data/sfx" "$app/data/sfx"
 cp "$root/data/music.ogg" "$app/data/music.ogg"
 cp -R "$root/data/images/tiles" "$root/data/images/clouds" "$app/data/images/"
 cp -R "$root/data/images/entities/player" "$root/data/images/entities/player2" "$app/data/images/entities/"
-for image in _gun bullet3 health_simple welcome P1 P2; do
+for image in _gun bullet3 health_simple P1 P2; do
   cp "$root/data/images/$image.png" "$app/data/images/"
 done
 find "$app" -name __pycache__ -type d -prune -exec rm -rf {} +
