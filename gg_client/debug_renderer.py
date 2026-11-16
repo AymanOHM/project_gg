@@ -1,19 +1,19 @@
-"""A plain renderer: coloured rectangles, no sprites.
+"""A plain renderer: coloured rectangles at the exact collision boxes.
 
-It exists so the rules can be played and checked by eye before the real renderer
-(roadmap task 1.6) is built, and as a small worked example of the Renderer
-protocol. It is not the base for 1.6.
+Run it with `uv run python -m gg_client --debug`. Useful for checking the rules
+by eye, and a small worked example of the Renderer protocol.
 """
 
 import pygame as pg
 
 from gg_core import Level
 
+from .camera import Camera
+
 SKY = (72, 160, 211)
 TILE_COLOURS = {"grass": (70, 140, 60), "stone": (90, 90, 110)}
 PLAYER_COLOURS = {"p1": (230, 230, 240), "p2": (40, 40, 50)}
 BULLET_COLOUR = (250, 220, 60)
-CAMERA_SMOOTHING = 30  # v1: the camera closes 1/30 of the gap each frame
 
 
 class DebugRenderer:
@@ -21,25 +21,16 @@ class DebugRenderer:
         self.screen = screen
         self.font = pg.font.Font(None, 28)
         self.level: Level | None = None
-        self.scroll = [0.0, 0.0]
+        self.camera = Camera(screen.get_size())
 
     def load_level(self, level: Level) -> None:
         self.level = level
 
     def draw(self, snapshot: dict, alpha: float = 0.0) -> None:
         screen, level = self.screen, self.level
-        width, height = screen.get_size()
         players = snapshot["players"]
-
-        # v1's camera: ease towards the midpoint between the players.
-        mid_x = sum(p["x"] for p in players) / len(players)
-        mid_y = sum(p["y"] for p in players) / len(players)
-        self.scroll[0] += (mid_x - width / 2 - self.scroll[0]) / CAMERA_SMOOTHING
-        self.scroll[1] += (mid_y - height / 2 - self.scroll[1]) / CAMERA_SMOOTHING
-
-        def to_screen(x, y, w, h):
-            """World rectangle (Y-up, bottom-left origin) to a pygame Rect (Y-down, top-left)."""
-            return pg.Rect(x - self.scroll[0], height - (y - self.scroll[1]) - h, w, h)
+        self.camera.follow(players)
+        to_screen = self.camera.to_screen
 
         screen.fill(SKY)
         size = level.tile_size
