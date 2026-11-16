@@ -7,9 +7,11 @@ os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame as pg  # noqa: E402
+import pytest  # noqa: E402
 
 from gg_client.__main__ import LEVEL_PATH, main  # noqa: E402
 from gg_client.audio import Audio  # noqa: E402
+from gg_client.camera import Camera  # noqa: E402
 from gg_client.debug_renderer import SKY, DebugRenderer  # noqa: E402
 from gg_client.keyboard import KEYMAP, read_inputs  # noqa: E402
 from gg_client.menu import Menu, draw_menu  # noqa: E402
@@ -41,6 +43,38 @@ def test_volume_changed_in_the_menu_is_applied_and_not_saved_for_injected_settin
     press(pg.K_DOWN, pg.K_RETURN, pg.K_LEFT, pg.K_LEFT)  # OPTIONS, then music down twice
     asyncio.run(main(max_frames=5, settings=settings))
     assert settings.music_volume == 3
+
+
+def count_match_steps(monkeypatch):
+    calls = []
+    real_step = Match.step
+    monkeypatch.setattr(
+        Match, "step", lambda self, inputs: (calls.append(1), real_step(self, inputs))
+    )
+    return calls
+
+
+def test_escape_pauses_a_match_and_the_game_stands_still(monkeypatch):
+    pg.init()
+    calls = count_match_steps(monkeypatch)
+    asyncio.run(main(max_frames=20, skip_menu=True, settings=Settings()))
+    assert calls, "an unpaused match should advance"
+    calls.clear()
+    pg.init()  # main() shut pygame down on its way out
+    press(pg.K_ESCAPE)
+    asyncio.run(main(max_frames=20, skip_menu=True, settings=Settings()))
+    assert calls == []
+    pg.init()  # main() shut pygame down on its way out
+    press(pg.K_ESCAPE, pg.K_ESCAPE)  # pause, then resume
+    asyncio.run(main(max_frames=20, skip_menu=True, settings=Settings()))
+    assert calls
+
+
+def test_pause_menu_leads_back_to_the_main_menu():
+    pg.init()
+    # Pause, QUIT TO MENU, then up from PLAY wraps to QUIT: the loop ends by itself.
+    press(pg.K_ESCAPE, pg.K_DOWN, pg.K_DOWN, pg.K_RETURN, pg.K_UP, pg.K_RETURN)
+    asyncio.run(main(max_frames=10_000_000, skip_menu=True, settings=Settings()))
 
 
 def played_match(ticks=243):
@@ -197,3 +231,63 @@ def test_the_client_plays_every_level_in_rotation():
             break
         match.step({"p1": PlayerInput(left=True, jump=tick % 30 == 0)})  # p1 wanders off the map
     assert seen[: len(LEVEL_ORDER)] == list(LEVEL_ORDER)
+
+
+def _two_players(gap_x, gap_y=0):
+    return [
+        {"id": "p1", "x": 100, "y": 100, "w": 35, "h": 55},
+        {"id": "p2", "x": 100 + gap_x, "y": 100 + gap_y, "w": 35, "h": 55},
+    ]
+
+
+def test_camera_widens_to_keep_distant_players_in_view_and_narrows_again():
+    camera = Camera((1280, 720), max_scale=1.6)
+    far = _two_players(1200, 300)
+    for _ in range(600):
+        camera.follow(far)
+    assert 1 < camera.scale <= 1.6
+    view = pg.Rect((0, 0), camera.view_size)
+    for p in far:
+        assert view.contains(camera.to_screen(p["x"], p["y"], p["w"], p["h"]))
+
+    for _ in range(600):
+        camera.follow(_two_players(5000))  # farther than the limit allows
+    assert camera.scale == pytest.approx(1.6, abs=0.01)
+
+    for _ in range(600):
+        camera.follow(_two_players(200))
+    assert camera.scale == 1.0 and camera.view_size == (1280, 720)
+
+
+def test_camera_without_a_zoom_limit_never_changes_scale():
+    camera = Camera((1280, 720))
+    for _ in range(100):
+        camera.follow(_two_players(3000))
+    assert camera.scale == 1.0
+
+
+def test_sprite_renderer_shows_both_players_when_they_start_far_apart():
+    pg.init()
+    pg.display.set_mode((1280, 720))
+    screen = pg.Surface((1280, 720))
+    level = load_level(LEVEL_PATH.parent / "towers.json")
+    match = Match([level])
+    for _ in range(120):  # the players settle during the countdown
+        match.step({})
+    snap = match.snapshot()
+    renderer = SpriteRenderer(screen)
+    renderer.load_level(level)
+    for _ in range(300):
+        renderer.draw(snap)
+    scale = renderer.camera.scale
+    assert scale > 1
+    for p in snap["players"]:
+        rect = renderer.camera.to_screen(p["x"], p["y"], p["w"], p["h"])
+        on_screen = pg.Rect(rect.x / scale, rect.y / scale, rect.w / scale, rect.h / scale)
+        assert screen.get_rect().contains(on_screen), f"{p['id']} is off the screen"
+        colours = {
+            tuple(screen.get_at((x, y)))[:3]
+            for x in range(on_screen.left, on_screen.right)
+            for y in range(on_screen.top, on_screen.bottom)
+        }
+        assert len(colours) > 2, f"nothing drawn for {p['id']}"

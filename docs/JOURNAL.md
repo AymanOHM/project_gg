@@ -368,4 +368,98 @@ Two details needed care. Both programs load whole folders (`load_images('tiles/g
 
 **The lesson.** Green CI answers "does it still do what the tests describe". A gate asks "does it do what we wanted". The gap between the two is exactly the list a reviewer needs, so the PR states it rather than leaving it to be discovered.
 
-**Where to look.** The open PR from `phase-2` to `main`; `.github/workflows/deploy-web.yml` for when the page is rebuilt.
+**What happened next.** Ayman approved it the same day. The PR was merged with a merge commit and `deploy-web` was started by hand on `main` (`gh workflow run deploy-web.yml --ref main`); the run built commit `35e004d` and the page answered with the new build. The two steps were separate commands, which is the point made above: merging and publishing are different decisions.
+
+**Where to look.** PR #49; `.github/workflows/deploy-web.yml` for when the page is rebuilt.
+
+---
+
+## 22. Asking the physics whether a level can be crossed
+
+**Problem.** Entry 17 ended with a doubt: the tutorial's maps were built for a different jump height, so on `cliffs` and `towers` the two players might never be able to reach each other. The handoff said a person had to play them to find out. Could the code answer it instead?
+
+**What we did.** Wrote a test that searches for a route. For every shipped level and each player, it looks for a sequence of button presses that brings that player to within one tile of where the other one starts. All four levels pass in both directions.
+
+**How the search works.** It is a best-first search, a relative of the breadth-first search used for mazes.
+- A *state* is a copy of one player (position, speed, whether the double jump and the dash are available) plus the tick number.
+- A *move* is one of eight button combinations (nothing, left, right, jump, jump left, jump right, dash left, dash right) held for five ticks. A jump or dash is pressed only on the first of the five ticks, because both act on the press, not the hold.
+- The search keeps a priority queue of states ordered by distance to the goal. It takes the closest one, puts the real `World` into that state, plays each move through `World.step`, and adds the results to the queue.
+- States that land in the same 15-pixel square with the same flags count as already visited. Without that the search would never end; with it, a level has a few thousand distinct places.
+
+**Why use the real rules instead of a formula.** One could reason "a double jump rises about 130 pixels, so a ledge three tiles up is reachable". But the truth includes wall jumps, air control, the dash holding height, and corners that catch a player by a pixel. The rules already encode all of that, and they are a pure function of state and input (entry 6), so they can be run from any state as often as needed. This is the third thing determinism has paid for, after the parity tests and reproducible bot runs.
+
+**What a pass and a fail mean.** They are not symmetric. A pass is a proof: the route was actually played, tick by tick, by the same code the game runs. A fail only means the search did not find a route. Because nearby positions are merged, it can discard the one state that would have made a tight jump. So the test's message says "no route found", not "impossible", and a second test feeds the search a sealed room to check that it does give up rather than pass everything.
+
+**What it found on the way.** Run without the dash, the search fails in one direction on every level (for example p2 cannot get up to p1's tunnel in the arena). With the dash every direction works. One direction is enough for the players to meet, so the levels were playable before, but lopsided: one player had to come to the other.
+
+**What it does not tell us.** Reachable is not the same as fun, and a route a search finds in 600 attempts may be one a person finds annoying. It also says nothing about the camera, which is the next entry's subject.
+
+**Where to look.** `tests/test_level_reachability.py`.
+
+---
+
+## 23. A camera that widens, and why it draws big and shrinks
+
+**Problem.** The camera followed the midpoint between the players at a fixed size of 1,280 by 720 world pixels. On `cliffs` and `towers` the players start about 1,200 pixels apart, so both stood at the very edges of the screen, and a player who climbed could leave the picture altogether.
+
+**What we did.** The camera now has a `scale`: how many world pixels one screen pixel covers. It is 1 while the players are close. When they are far apart it grows, up to 1.6, until both are at least 250 pixels inside the left and right edges and 200 inside the top and bottom. It eases towards its target by 1/30 of the gap per frame, the same rule the original used for scrolling, so zoom and scroll move together.
+
+**The design question: how do you draw a zoomed-out picture?** Entry 11 explained that every image is scaled once when it is loaded, and that `draw` only copies pixels. A zoom seems to break that: at scale 1.3 every tile should be 35 pixels, at 1.31 a little less, and the scale changes every frame while it eases. Three options:
+- *Rescale every sprite whenever the scale changes.* That is the per-frame image work entry 11 removed, and it would fail that entry's test.
+- *Only allow a few fixed zoom levels and cache sprites for each.* No per-frame scaling, but the camera would jump between levels, and tiles drawn at rounded sizes leave one-pixel seams.
+- *Draw the world at normal size onto a larger surface, then shrink the whole picture once.* This is what we did.
+
+**How it works.** The renderer keeps one surface of 2,048 by 1,152 pixels (1.6 screens). Each frame it asks the camera for the view size, takes that much of the big surface (`subsurface`, which is a window onto the same pixels, not a copy), and draws tiles, players and bullets on it exactly as before, with the same cached images. Then one call, `pygame.transform.smoothscale`, shrinks that picture onto the screen. The score and countdown are drawn afterwards, straight onto the screen, so the text stays the same size and stays sharp.
+
+The camera's `to_screen` now answers in the coordinates of the view, not of the screen. At scale 1 those are the same thing, which is why none of the drawing code had to learn about zoom: it changed from "blit to the screen" to "blit to the canvas", and the canvas is the screen itself whenever the scale is 1.
+
+**What it costs.** One shrink of up to 2.4 million pixels per frame. Measured on the Mac with a fake display: 0.5 ms per frame at scale 1 and about 2.5 ms zoomed out, against a budget of 16.7 ms at 60 frames per second. When the players are close the cost is zero, because the shrink is skipped. The browser was not measured; WebAssembly is slower, so that is the place to look if the web build stutters on the wide levels. The limit is one constant, `MAX_ZOOM_OUT`.
+
+**Why stop at 1.6.** The sprites are small pixel art. Past a certain point the players are a few pixels tall and the game is unreadable, and the cost grows with the square of the scale. Beyond the limit the camera behaves as before: it centres on the midpoint and the players may leave the edges.
+
+**A small trap.** Easing never quite arrives: the scale would hover at 1.0000001 for ever and the renderer would keep shrinking a picture by nothing. The camera snaps to exactly 1 once it is within a thousandth.
+
+**Where to look.** `gg_client/camera.py`, the top of `SpriteRenderer.draw` in `gg_client/sprite_renderer.py`, and the three camera tests at the end of `tests/test_client_smoke.py`.
+
+---
+
+## 24. Pausing: stopping the game without stopping the program
+
+**Problem.** Esc during a match threw the match away and showed the main menu. There was no way to stop for a moment, and no way to change the volume or a key without losing the score.
+
+**What we did.** Esc now opens a pause menu over the frozen game: RESUME, OPTIONS, QUIT TO MENU. Esc again resumes. After a match has ended, Esc still goes straight to the main menu, because there is nothing left to pause.
+
+**How pausing works.** It is one line. The loop already separated three things every frame: read events, advance the rules some number of ticks, draw. Pausing sets the number of ticks to zero and leaves the rest running:
+
+```python
+for _ in range(0 if paused else steps):
+    match.step(inputs)
+```
+
+The window still redraws 60 times a second, the music plays, the clouds drift, the menu responds. Only game time stands still. This works because the rules never look at a clock (entry 6): a `Match` that is not stepped cannot change, however long the pause lasts. A game that measured elapsed time inside its physics would have to be told about the pause explicitly, or it would leap forward on resume.
+
+**What happens to the clock.** `FixedStep.advance` is still called every frame and its answer is thrown away. Nothing builds up: the frame timer measures one frame at a time, so the first frame after resuming sees an ordinary sixtieth of a second, not the length of the pause. (An earlier version of this entry claimed the call was needed to prevent a burst of catch-up ticks. It is not; skipping it would work as well. The claim was written before it was checked, which is its own small lesson.)
+
+**Reusing the menu.** The pause menu is a fourth screen of the existing `Menu` class, so it got the lettering, keyboard handling and options screens for nothing. The one new idea is `root`: the options screen needs to know where BACK leads, and that is now the main menu or the pause menu depending on how it was reached. A menu with fixed "back" targets works until the same screen is reachable from two places; then the way back has to be remembered rather than hard-coded.
+
+**A bug caught before it shipped.** `root` stays `"pause"` after resuming. If that match then ran to its end and the player pressed Esc, the game showed the main menu's place with the pause menu's contents. Leaving a finished match now calls `menu.open("main")`. The cause is general: state that is set on the way into something has to be reset on every way out, and there were two ways out.
+
+**How it is tested.** The menu logic has plain tests, as in entry 16. For the loop, a test wraps `Match.step` in a counter, queues an Esc key press, runs twenty frames and checks the counter is zero; then Esc twice and checks it is not. It tests the property that matters (no ticks while paused) without reaching into the loop's variables.
+
+**Rebinding during a match.** It works, with no code written for it: the loop reads `settings.keymap` every frame, so a key changed in the pause menu applies on the next tick.
+
+**Where to look.** The event handling and the `paused` lines in `gg_client/__main__.py`; `open` and `root` in `gg_client/menu.py`.
+
+---
+
+## 25. What "Phase 2 is done" can and cannot mean
+
+**Problem.** The instruction was to continue until Phase 2 is done. Phase 2 has ten tasks. Nine are code. The tenth, 2.9, is "play-test with about five people and fix the top three complaints".
+
+**Where it stands.** Every code task is merged into `phase-2`, with the three gaps the handoff had listed closed since the last milestone: levels proven crossable (entry 22), a camera that keeps both players in view (entry 23), and a pause menu (entry 24). 205 tests pass.
+
+**What could not be done.** Task 2.9 needs people. A program can check that a level can be crossed; it cannot say the dash is too short or the third level is dull. An attempt to at least try the browser build in Chrome also failed, because the browser extension that drives Chrome was not connected, so two things remain checked only on the desktop: that the dash keys reach the game in a browser, and what the zoomed-out camera costs there.
+
+**Why say so instead of calling it done.** A task list where "play-test" is ticked because the tests pass is worse than one where it is open, because the next person trusts it. The honest state is: built, tested by machine, not yet tested by people. The second milestone PR to `main` says exactly that and waits.
+
+**Where to look.** `docs/HANDOFF.md`, "Next steps".

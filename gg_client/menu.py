@@ -9,7 +9,8 @@ import pygame as pg
 
 from .settings import VOLUME_STEPS, Settings, default_keymap
 
-PLAY, QUIT = "play", "quit"  # what handle_key can ask the game to do
+# What handle_key can ask the game to do.
+PLAY, QUIT, RESUME, LEAVE = "play", "quit", "resume", "leave"
 
 BUTTON_LABELS = {
     "left": "LEFT",
@@ -24,7 +25,8 @@ BUTTON_LABELS = {
 class Menu:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self.screen = "main"  # main | options | controls
+        self.screen = "main"  # main | pause | options | controls
+        self.root = "main"  # where BACK from options leads: main, or pause during a match
         self.index = 0
         self.waiting_for_key = False  # True while a new key is being chosen for a binding
         self.changed = False  # set whenever a setting changes; the game applies and clears it
@@ -36,6 +38,8 @@ class Menu:
         s = self.settings
         if self.screen == "main":
             return [("play", "PLAY"), ("options", "OPTIONS"), ("quit", "QUIT")]
+        if self.screen == "pause":
+            return [("resume", "RESUME"), ("options", "OPTIONS"), ("leave", "QUIT TO MENU")]
         if self.screen == "options":
             return [
                 ("music", f"MUSIC  < {s.music_volume} >"),
@@ -56,12 +60,18 @@ class Menu:
     def title(self) -> str:
         if self.waiting_for_key:
             return "PRESS A KEY"
-        return {"main": "PROJECT GG", "options": "OPTIONS", "controls": "CONTROLS"}[self.screen]
+        titles = {
+            "main": "PROJECT GG",
+            "pause": "PAUSED",
+            "options": "OPTIONS",
+            "controls": "CONTROLS",
+        }
+        return titles[self.screen]
 
     # ------------------------------------------------------------------ input
 
     def handle_key(self, key: int) -> str | None:
-        """React to one key press. Returns PLAY, QUIT or None."""
+        """React to one key press. Returns PLAY, QUIT, RESUME, LEAVE or None."""
         items = self.items()
         item = items[self.index][0]
 
@@ -84,7 +94,9 @@ class Menu:
         elif key == pg.K_ESCAPE:
             if self.screen == "main":
                 return QUIT
-            self._go("options" if self.screen == "controls" else "main")
+            if self.screen == "pause":
+                return RESUME
+            self._go("options" if self.screen == "controls" else self.root)
         return None
 
     def _adjust(self, item: str, step: int) -> None:
@@ -104,10 +116,15 @@ class Menu:
             return PLAY
         if item == "quit":
             return QUIT
+        if item == "resume":
+            return RESUME
+        if item == "leave":
+            self.open("main")
+            return LEAVE
         if item in ("options", "controls"):
             self._go(item)
         elif item == "back":
-            self._go("options" if self.screen == "controls" else "main")
+            self._go("options" if self.screen == "controls" else self.root)
         elif item == "fullscreen":
             self._adjust(item, 1)
         elif item == "reset":
@@ -116,6 +133,12 @@ class Menu:
         elif item.startswith("bind:"):
             self.waiting_for_key = True
         return None
+
+    def open(self, root: str) -> None:
+        """Show the main menu ("main") or the pause menu ("pause") from its first line."""
+        self.root = root
+        self.waiting_for_key = False
+        self._go(root)
 
     def _go(self, screen: str) -> None:
         self.screen = screen
