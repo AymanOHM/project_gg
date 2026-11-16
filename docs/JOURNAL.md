@@ -368,4 +368,6 @@ Two details needed care. Both programs load whole folders (`load_images('tiles/g
 
 **The lesson.** Green CI answers "does it still do what the tests describe". A gate asks "does it do what we wanted". The gap between the two is exactly the list a reviewer needs, so the PR states it rather than leaving it to be discovered.
 
-**Where to look.** The open PR from `phase-2` to `main`; `.github/workflows/deploy-web.yml` for when the page is rebuilt.
+**What happened next.** Ayman approved it the same day. The PR was merged with a merge commit and `deploy-web` was started by hand on `main` (`gh workflow run deploy-web.yml --ref main`); the run built commit `35e004d` and the page answered with the new build. The two steps were separate commands, which is the point made above: merging and publishing are different decisions.
+
+**Where to look.** PR #49; `.github/workflows/deploy-web.yml` for when the page is rebuilt.
