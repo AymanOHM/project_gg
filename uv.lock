@@ -149,6 +149,9 @@ legacy = [
     { name = "pillow" },
     { name = "pyopengl" },
 ]
+web = [
+    { name = "pygbag" },
+]
 
 [package.metadata]
 requires-dist = [{ name = "pygame-ce", specifier = ">=2.5.2" }]
@@ -163,6 +166,7 @@ legacy = [
     { name = "pillow", specifier = ">=10" },
     { name = "pyopengl", specifier = ">=3.1.7" },
 ]
+web = [{ name = "pygbag", specifier = ">=0.9.3" }]
 
 [[package]]
 name = "pygame-ce"
@@ -177,6 +181,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/e6/238b48936733ed1908486df072137e7eef61fd26de4620d54e438b69d509/pygame_ce-2.5.8-cp312-cp312-win32.whl", hash = "sha256:91d2434d8cbdb7cd04c9b37e76a8154641da25f4e274265806407f495fe6e889", size = 9126160, upload-time = "2026-08-09T11:38:34.812Z" },
     { url = "https://files.pythonhosted.org/packages/81/13/2bba0ebe563047ae9de68dc05656dc0bfa9394c60970548b06d2f2e106c5/pygame_ce-2.5.8-cp312-cp312-win_amd64.whl", hash = "sha256:2cfe8afe1e7955780f0bd4f01d65f1b4903f561407052081cfcec31e80957c3c", size = 9668595, upload-time = "2026-08-09T11:38:37.279Z" },
     { url = "https://files.pythonhosted.org/packages/b1/2e/871161f0546d549fa458609029771d7a36c1e7758e164a3b2c2ed61b507b/pygame_ce-2.5.8-cp312-cp312-win_arm64.whl", hash = "sha256:6c48a3ad5f7102e076055a3c817c12e932ee5c9b831080db2ea9754236b0490d", size = 10213955, upload-time = "2026-08-09T11:38:39.559Z" },
+]
+
+[[package]]
+name = "pygbag"
+version = "0.9.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9f/85/a71c709305451264abede261cbb58ad964c08fcda4717ebbe2be473962bc/pygbag-0.9.3.tar.gz", hash = "sha256:e1a4d8027ed22fc7e453abe0b4abb35a7bfb4c39fa7f1d1b2a6b1f3a92696349", size = 156287, upload-time = "2026-02-12T19:29:46.935Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5d/5c/f0c741f4492bc4836625365e4b2e7edba034af0ff424201d49e62e65c67a/pygbag-0.9.3-py3-none-any.whl", hash = "sha256:ada203ff5a214f721029cb3b3741f641b032cde1ccaac60bc8dd9e641f3da3d5", size = 176071, upload-time = "2026-02-12T19:29:45.608Z" },
 ]
 
 [[package]]
