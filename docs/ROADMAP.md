@@ -81,7 +81,7 @@ Sizes: **S** ≤ 1 day, **M** 2–3 days, **L** about a week. Work is split equa
 
 ### Phase 0 — Foundations (Sprint 0, week 1)
 
-**Goal:** a clean repo that runs on Mac and Linux, plus the board and the key decision. **Gate:** a fresh clone → `uv sync` → the old game runs on the M3 Mac; CI is green on `main`.
+**Goal:** a clean repo that runs on Mac and Linux, plus the board and the key decision. **Gate:** a fresh clone → `uv sync` → the old game runs on the M3 Mac, or its movement and combat behaviour is captured as characterization tests; CI is green on `main`.
 
 | ID | Task | Owner | Size |
 |---|---|---|---|
@@ -92,6 +92,7 @@ Sizes: **S** ≤ 1 day, **M** 2–3 days, **L** about a week. Work is split equa
 | 0.5 | ruff + pre-commit; GitHub Actions running lint + pytest on every PR | Friend | M |
 | 0.6 | Branch protection: PR, 1 review and green CI to merge | Friend | S |
 | 0.7 | Dockerfile / dev container for the toolchain | Friend | M |
+| 0.8 | `LICENSE` + `CREDITS.md`; verify the art and audio licences before any public web deploy | Ayman | S |
 
 ### Phase 1 — Engine refactor (Sprints 1–2, weeks 2–4)
 
@@ -158,6 +159,7 @@ Cut line: anything not listed here goes to the icebox, however small it looks.
 | 4.6 | GitOps with Argo CD: `main` → staging, tag → prod | Ayman | M |
 | 4.7 | Secrets with SOPS | Friend | S |
 | 4.8 | Ingress + cert-manager for the matchmaker and web client | Friend | S |
+| 4.9 | TLS WebSocket (`wss://`) path from a browser to an Agones game server: gateway or per-server certificates. An HTTPS page cannot open plain `ws://` | Open | L |
 
 ### Phase 5 — Observability & scale (Sprint 8, weeks 13–14)
 
