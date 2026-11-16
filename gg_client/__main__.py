@@ -28,7 +28,9 @@ from .menu import PLAY, QUIT, Menu, draw_menu
 from .settings import VOLUME_STEPS, Settings
 from .sprite_renderer import SpriteRenderer
 
-LEVEL_PATH = Path(__file__).resolve().parent.parent / "data" / "levels" / "arena.json"
+LEVELS_DIR = Path(__file__).resolve().parent.parent / "data" / "levels"
+LEVEL_PATH = LEVELS_DIR / "arena.json"
+LEVEL_ORDER = ("arena", "meadow", "cliffs", "towers")  # one per round, in this order
 WINDOW_SIZE = (1280, 720)
 
 
@@ -53,9 +55,10 @@ async def main(
     pg.display.set_caption("Project GG")
     frame_timer = pg.time.Clock()
 
-    level = load_level(LEVEL_PATH)
+    levels = [load_level(LEVELS_DIR / f"{name}.json") for name in LEVEL_ORDER]
+    by_name = {level.name: level for level in levels}
     renderer = DebugRenderer(screen) if debug else SpriteRenderer(screen)
-    renderer.load_level(level)
+    shown_level = None  # the level the renderer currently has loaded
     save = settings is None  # settings passed in (tests) are never written to disk
     settings = settings or Settings.load()
     menu = Menu(settings)
@@ -63,7 +66,7 @@ async def main(
     audio.start_music()
     apply_settings(settings, audio)
     # No match means the menu is showing. The debug renderer has no menu.
-    match = Match([level]) if debug or skip_menu else None
+    match = Match(levels) if debug or skip_menu else None
     fixed = FixedStep()
 
     frames = 0
@@ -77,7 +80,7 @@ async def main(
             elif match is None:
                 action = menu.handle_key(event.key)
                 if action == PLAY:
-                    match = Match([level])
+                    match = Match(levels)
                 elif action == QUIT:
                     running = False
                 if menu.changed:
@@ -89,7 +92,7 @@ async def main(
                 match = None if not debug else match
                 running = running and not debug
             elif event.key == pg.K_RETURN and match.phase == MATCH_OVER:
-                match = Match([level])
+                match = Match(levels)
 
         steps = fixed.advance(frame_timer.tick(60) / 1000)
         if match is None:
@@ -99,7 +102,11 @@ async def main(
             for _ in range(steps):
                 match.step(inputs)
                 audio.play_events(match.snapshot())
-            renderer.draw(match.snapshot(), fixed.alpha)
+            snapshot = match.snapshot()
+            if snapshot["match"]["level"] != shown_level:  # a new round on another level
+                shown_level = snapshot["match"]["level"]
+                renderer.load_level(by_name[shown_level])
+            renderer.draw(snapshot, fixed.alpha)
         pg.display.flip()
         frames += 1
         await asyncio.sleep(0)

@@ -20,7 +20,7 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `data/` | Art, audio, maps |
 | `gg_core/` | Headless rules: `World` (one round), `Match` (rounds, countdown, score), inputs, level loader, fixed-step clock, bots |
 | `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `Audio` (music and effects from snapshot events), `Menu` and `Settings` (menu, options, saved key bindings), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
-| `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted |
+| `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted; `meadow`, `cliffs` and `towers` are converted tutorial maps |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
 | `web/` | Browser build: `main.py` (pygbag entry point) and `build.sh`. Output goes to `build/web-app/` (ignored) |
 | `tools/` | `record_v1_traces.py` (re-record the traces), `convert_v1_map.py` |

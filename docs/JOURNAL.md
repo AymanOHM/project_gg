@@ -248,3 +248,24 @@ Other documents answer different questions: `docs/ROADMAP.md` says what is plann
 **Fullscreen.** The window is opened with pygame's `SCALED` flag: the game always draws at 1280x720 and SDL stretches the picture to the window or screen. Toggling fullscreen then needs no change anywhere else.
 
 **Where to look.** `gg_client/menu.py`, `gg_client/settings.py`, `tests/test_menu.py`.
+
+---
+
+## 17. Three more levels, and converting data between conventions
+
+**Problem.** `data/maps/0–2.json` came from the tutorial the art is from. They looked like ready-made levels, but they follow different conventions from this game: Y points down, positions are in 16-pixel units, there are no spawn points for two duelling players, and decoration is stored as free-floating pixel positions.
+
+**What we did.** Extended `tools/convert_v1_map.py` with a `--y-down` mode and produced `meadow`, `cliffs` and `towers` in `data/levels/`. The client now plays one level per round, in order, starting with the original arena.
+
+**How the conversion works.**
+- **Flipping.** In a Y-down map, row 3 is above row 15. In this game's Y-up world it must be the other way round, so every tile's `y` is negated. The tile pictures are not flipped, only their positions, so grass still has its green edge on top.
+- **Spawns.** The tutorial maps mark where its player and its enemies start. The converter takes the player marker and the enemy marker farthest from it horizontally, converts both from 16-pixel units to this game's 45-pixel tiles, and names the left one `p1`.
+- **Falling out.** `kill_y` is set 300 pixels below the lowest tile.
+
+**Why a tool and not hand-edited files.** A conversion written as code can be read, reviewed and rerun; a hand-edited file of 300 tiles cannot. The tool also validates its output with the same loader the game uses, so it cannot write a level the game would refuse.
+
+**How we know the levels are playable at all.** A test loads every shipped level, lets the world run for 200 ticks with nobody pressing anything, and checks that both players are standing on something, were not pushed sideways, and are at least ten tiles apart. That catches a spawn inside a wall or over a hole.
+
+**What that test does not prove.** It does not prove the players can reach each other. These maps were designed for the tutorial's jump height, and here a jump is 65 pixels and a double jump twice that. `cliffs` and `towers` also start the players about 1,200 pixels apart on a 1,280-pixel-wide view, so both sit near the screen edges. A person has to play them; if they do not work, removing a level is one line in `LEVEL_ORDER`.
+
+**Where to look.** `tools/convert_v1_map.py`, `data/levels/`, `LEVEL_ORDER` in `gg_client/__main__.py`, `tests/test_level.py`.

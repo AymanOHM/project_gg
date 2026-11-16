@@ -174,3 +174,24 @@ def test_audio_plays_each_ticks_events_once():
     assert audio.play_events(snap) == []  # same tick drawn again
     assert audio.play_events({"tick": 6, "events": [{"type": "unknown"}]}) == []
     assert audio.play_events({"tick": 7, "events": [{"type": "jump", "player": "p1"}]}) == ["jump"]
+
+
+def test_the_client_plays_every_level_in_rotation():
+    from gg_client.__main__ import LEVEL_ORDER, LEVELS_DIR
+
+    pg.init()
+    pg.display.set_mode((1280, 720))
+    levels = [load_level(LEVELS_DIR / f"{name}.json") for name in LEVEL_ORDER]
+    renderer = SpriteRenderer(pg.Surface((1280, 720)))
+    match = Match(levels, rounds_to_win=99, countdown_ticks=1, round_over_ticks=1)
+    seen = []
+    for tick in range(20_000):
+        name = match.snapshot()["match"]["level"]
+        if not seen or seen[-1] != name:
+            seen.append(name)
+            renderer.load_level(levels[LEVEL_ORDER.index(name)])
+            renderer.draw(match.snapshot())  # every tile image of the level exists
+        if len(seen) > len(LEVEL_ORDER):
+            break
+        match.step({"p1": PlayerInput(left=True, jump=tick % 30 == 0)})  # p1 wanders off the map
+    assert seen[: len(LEVEL_ORDER)] == list(LEVEL_ORDER)
