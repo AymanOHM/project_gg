@@ -1,0 +1,39 @@
+[project]
+name = "project-gg"
+version = "2.0.0.dev0"
+description = "2D two-player platform shooter: headless rules core, pygame-ce client, authoritative server"
+readme = "ReadMe.md"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+dependencies = [
+    "pygame-ce>=2.5.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.8",
+    "pre-commit>=4",
+]
+# Only needed to run the original v1 game (game.py + scripts/).
+legacy = [
+    "PyOpenGL>=3.1.7",
+    "Pillow>=10",
+]
+
+[tool.uv]
+package = false
+default-groups = ["dev", "legacy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# The v1 game is frozen reference code; it is replaced, not cleaned up.
+extend-exclude = ["game.py", "scripts", "test.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]

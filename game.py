@@ -1,11 +1,4 @@
 import sys
-import os
-
-parent_dir = os.path.abspath(os.path.dirname(__file__))
-libs_dir = os.path.join(parent_dir, 'libs')
-
-sys.path.append(libs_dir)
-
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
