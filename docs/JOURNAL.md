@@ -371,3 +371,27 @@ Two details needed care. Both programs load whole folders (`load_images('tiles/g
 **What happened next.** Ayman approved it the same day. The PR was merged with a merge commit and `deploy-web` was started by hand on `main` (`gh workflow run deploy-web.yml --ref main`); the run built commit `35e004d` and the page answered with the new build. The two steps were separate commands, which is the point made above: merging and publishing are different decisions.
 
 **Where to look.** PR #49; `.github/workflows/deploy-web.yml` for when the page is rebuilt.
+
+---
+
+## 22. Asking the physics whether a level can be crossed
+
+**Problem.** Entry 17 ended with a doubt: the tutorial's maps were built for a different jump height, so on `cliffs` and `towers` the two players might never be able to reach each other. The handoff said a person had to play them to find out. Could the code answer it instead?
+
+**What we did.** Wrote a test that searches for a route. For every shipped level and each player, it looks for a sequence of button presses that brings that player to within one tile of where the other one starts. All four levels pass in both directions.
+
+**How the search works.** It is a best-first search, a relative of the breadth-first search used for mazes.
+- A *state* is a copy of one player (position, speed, whether the double jump and the dash are available) plus the tick number.
+- A *move* is one of eight button combinations (nothing, left, right, jump, jump left, jump right, dash left, dash right) held for five ticks. A jump or dash is pressed only on the first of the five ticks, because both act on the press, not the hold.
+- The search keeps a priority queue of states ordered by distance to the goal. It takes the closest one, puts the real `World` into that state, plays each move through `World.step`, and adds the results to the queue.
+- States that land in the same 15-pixel square with the same flags count as already visited. Without that the search would never end; with it, a level has a few thousand distinct places.
+
+**Why use the real rules instead of a formula.** One could reason "a double jump rises about 130 pixels, so a ledge three tiles up is reachable". But the truth includes wall jumps, air control, the dash holding height, and corners that catch a player by a pixel. The rules already encode all of that, and they are a pure function of state and input (entry 6), so they can be run from any state as often as needed. This is the third thing determinism has paid for, after the parity tests and reproducible bot runs.
+
+**What a pass and a fail mean.** They are not symmetric. A pass is a proof: the route was actually played, tick by tick, by the same code the game runs. A fail only means the search did not find a route. Because nearby positions are merged, it can discard the one state that would have made a tight jump. So the test's message says "no route found", not "impossible", and a second test feeds the search a sealed room to check that it does give up rather than pass everything.
+
+**What it found on the way.** Run without the dash, the search fails in one direction on every level (for example p2 cannot get up to p1's tunnel in the arena). With the dash every direction works. One direction is enough for the players to meet, so the levels were playable before, but lopsided: one player had to come to the other.
+
+**What it does not tell us.** Reachable is not the same as fun, and a route a search finds in 600 attempts may be one a person finds annoying. It also says nothing about the camera, which is the next entry's subject.
+
+**Where to look.** `tests/test_level_reachability.py`.

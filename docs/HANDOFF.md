@@ -99,7 +99,7 @@ Not taken: 0.2 (board), 0.6 (branch protection), 0.7 (dev container), 1.6 (rende
 For the next model. Each step is one branch off `phase-2` and one PR into `phase-2`; merge it when CI is green. Add a `docs/JOURNAL.md` entry in every PR.
 
 1. **2.2 menu and options: done** (PR #43). Not done: a pause screen inside a match (Esc goes straight back to the menu).
-2. **2.4 levels: done** (`meadow`, `cliffs`, `towers`; rotation in `LEVEL_ORDER`). Unverified: whether players can reach each other on `cliffs` and `towers`, and the camera does not zoom out when players are far apart.
+2. **2.4 levels: done** (`meadow`, `cliffs`, `towers`; rotation in `LEVEL_ORDER`). `tests/test_level_reachability.py` proves each player can reach the other's start on every level. The camera does not zoom out when players are far apart.
 3. **2.8 desktop builds: done** (`desktop/build.sh`, `release-desktop.yml`). The zips are attached to a release when a version tag such as `v2.0` is pushed; no such tag exists yet. Builds are unsigned.
 4. **0.8, the rest: done.** 79 unused images deleted. Kept on purpose: `data/maps/` (source of the converted levels, which are not play-tested yet), `data/sfx/dash.ogg` (for 2.5) and `data/images/welcome.png` (only v1 loads it; delete it with v1 in PR #38). Licences are still unverified; Ayman handles them.
 5. **2.5 dash: done.** Left Shift for p1, `.` for p2. Distance, duration and cooldown (`gg_core/constants.py`) are untested guesses; nobody has played it. A dash gives no protection from bullets.
