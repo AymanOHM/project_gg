@@ -20,7 +20,7 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | [#31](https://github.com/AymanOHM/project_gg/pull/31) | `docs/handoff-and-backlog` | — | Based on #30. This file, proposals, issue bodies |
 | [#32](https://github.com/AymanOHM/project_gg/pull/32) | `docs/asset-licences` | 0.8 (part) | Based on #31. `CREDITS.md` with what could be verified |
 | [#33](https://github.com/AymanOHM/project_gg/pull/33) | `test/readable-rules` | 1.8 | Based on #32. Tests only; `gg_core` unchanged |
-| #34 | `feat/match-rounds` | 2.1 (rules part) | Based on #33. `Match`: countdown, best of three, score, level rotation |
+| [#34](https://github.com/AymanOHM/project_gg/pull/34) | `feat/match-rounds` | 2.1 (rules part) | Based on #33. `Match`: countdown, best of three, score, level rotation |
 
 #27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
 
@@ -50,25 +50,18 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 - Roadmap amendments approved and applied: relaxed Phase 0 gate, task 0.8, task 4.9.
 - A separate roadmap task for golden-master traces was not approved. The traces exist as test tooling inside the refactor PR instead.
 
+### Made by Ayman (2026-11-17)
+
+- **Hosting: web multiplayer with the same client on desktop.** Written up as `docs/adr/001-architecture-direction.md` (Accepted).
+- **Backlog proposals B1–B14: all accepted** and applied to `docs/ROADMAP.md`. `docs/proposals/2026-11-16-backlog.md` is kept as the record.
+- **1.6 (sprite renderer) moves to Ayman's column**, because 2.2 waits on it.
+- **Go-ahead to publish the pygbag spike to GitHub Pages** for the static-hosting check.
+
 ### Pending — Ayman
 
-**1. Hosting direction (for ADR-001).** Evidence: `docs/spikes/pygbag.md`.
-
-| Option | What it means | Cost |
-|---|---|---|
-| **A. Web multiplayer, same client on desktop (recommended)** | One pygame-ce client; browser and desktop both connect over WebSocket to the authoritative server | Task 4.9 (TLS path from browser to Agones game servers, L), a client transport layer with two implementations, an 11 MB runtime download |
-| B. Desktop-only backend | Clients are desktop builds; the web page is local play only | No 4.9, plain `ws://` to Agones ports works. Nobody can try online play from a link |
-| C. Decide after Phase 2 | Ship the local web game first, choose when Phase 3 starts | Nothing now; the protocol and transport stay open longer |
-
-Recommendation: **A**, with medium-high confidence. The spike found no blocker: 60 fps, working input, working WebSocket. A link anyone can click and play online is the strongest portfolio artefact, and the TLS gateway in 4.9 is real platform work worth showing.
-Strongest case against A: 4.9 is the hardest networking task in the plan and it exists only because of the browser. If time runs short in Phase 4, it is the task most likely to sink the gate. Option B removes it entirely, and the Kubernetes, Agones, observability and security work is the same either way.
-Nothing built so far depends on the choice.
-
-**2. Backlog proposals B1–B14** in `docs/proposals/2026-11-16-backlog.md`. None is applied.
-
-**3. Matchmaker language** (Node or Python): Ayman asks his friend. Nothing built depends on it.
-
-**4. ADR-002** is Proposed. It has three open questions for the interface session.
+- **Matchmaker language** (Node or Python): Ayman asks his friend. Nothing built depends on it.
+- **ADR-002** is Proposed. It has open questions for the interface session.
+- **Licence of the tutorial resources** (see `CREDITS.md`).
 
 ### Decided without Ayman — please confirm
 
