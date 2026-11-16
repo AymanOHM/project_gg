@@ -215,3 +215,36 @@ Other documents answer different questions: `docs/ROADMAP.md` says what is plann
 **A complication.** The PR that deletes the original game was held back on purpose, but two later PRs (browser build, sound) were stacked on top of it. Their commits were re-applied on a new branch from `main` with `git cherry-pick`, which copies a commit's change onto a different base. The two original PRs were closed as superseded.
 
 **Lesson.** Stack order is dependency order. Put the change most likely to be delayed at the top of a stack, not in the middle.
+
+---
+
+## 15. A journal, because finished code does not teach
+
+**Problem.** After the first long session the repo had working code, tests and pull requests, but nothing that explained the reasoning to the person the project is meant to teach.
+
+**What we did.** Started this file, wrote entries 1 to 14 from what had happened, and made a rule in `CLAUDE.md` that every change adds an entry.
+
+**Why a separate file.** A PR description says what changed and how to test it, and is read once at review. An ADR records one decision formally. Neither is a place to explain a mechanism, a mistake or a general lesson, and both are scattered. One file read top to bottom tells the story in order.
+
+---
+
+## 16. A menu that is logic first and pixels second
+
+**Problem.** The game needed a main menu and options (volume, fullscreen, key bindings), drawn like the welcome screen: white block letters with a dark shadow.
+
+**What we did.**
+- `gg_client/menu.py`: a `Menu` class that holds which screen and line are selected and reacts to key presses, and a separate `draw_menu` function that draws it.
+- `gg_client/settings.py`: a `Settings` object saved as JSON in `~/.project_gg/settings.json`.
+- The welcome image is replaced by the menu; the sky, clouds and gentle bob are kept.
+
+**Why split logic from drawing.** `Menu.handle_key(key)` takes a key code and returns `"play"`, `"quit"` or nothing. It needs no window, so every path through the menu is covered by fast tests: wrapping selection, volume limits, rebinding a key, cancelling a rebind. It is the same idea as `gg_core` and the renderer, at a smaller scale: keep decisions in code that can run anywhere, and keep the part that touches the screen thin.
+
+**How the lettering works.** There is no pixel font file in the repo, and the welcome screen's lettering exists only as a picture. `pixel_text` renders text small with smoothing turned off, then enlarges it with nearest-neighbour scaling, which copies each pixel into a square block. A dark copy drawn one pixel down and right before scaling becomes the shadow. The result is close to the welcome screen, not identical; an exact match needs the original font.
+
+**How settings are kept safe.** Saved data is treated as untrusted: every value is checked when loading, and anything missing or wrong falls back to the default rather than stopping the game. Keys are stored by name (`"space"`) instead of by number, so the file stays valid if pygame changes its key codes. In the browser nothing is saved, because the page has no lasting file system.
+
+**A detail worth noticing.** While the menu waits for a new key for a binding, every key must be accepted, including W, S and Enter, which normally move the cursor. So that state is checked first in `handle_key`, before any navigation.
+
+**Fullscreen.** The window is opened with pygame's `SCALED` flag: the game always draws at 1280x720 and SDL stretches the picture to the window or screen. Toggling fullscreen then needs no change anywhere else.
+
+**Where to look.** `gg_client/menu.py`, `gg_client/settings.py`, `tests/test_menu.py`.

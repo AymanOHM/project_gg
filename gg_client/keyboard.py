@@ -24,11 +24,11 @@ KEYMAP = {
 }
 
 
-def read_inputs(pressed) -> dict[str, PlayerInput]:
+def read_inputs(pressed, keymap=KEYMAP) -> dict[str, PlayerInput]:
     """Turn `pygame.key.get_pressed()` into one PlayerInput per local player."""
     return {
         pid: PlayerInput(
-            **{button: any(pressed[k] for k in keys) for button, keys in keys_by_button.items()}
+            **{button: any(pressed[k] for k in keys) for button, keys in buttons.items()}
         )
-        for pid, keys_by_button in KEYMAP.items()
+        for pid, buttons in keymap.items()
     }
