@@ -19,6 +19,8 @@ for image in _gun bullet3 health_simple P1 P2; do
   data_args+=(--add-data "data/images/$image.png:data/images")
 done
 
+# Paths stay relative to the repo root (where the .spec file is written). Absolute
+# paths from Git Bash on Windows look like /d/a/..., which PyInstaller cannot read.
 uv run --group desktop pyinstaller --noconfirm --clean --windowed --name ProjectGG \
-  --distpath dist --workpath build/pyinstaller --specpath build/pyinstaller \
-  --paths "$root" "${data_args[@]/#data\//$root/data/}" desktop/main.py
+  --distpath dist --workpath build/pyinstaller --specpath . \
+  --paths . "${data_args[@]}" desktop/main.py

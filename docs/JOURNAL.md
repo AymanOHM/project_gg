@@ -286,6 +286,8 @@ Other documents answer different questions: `docs/ROADMAP.md` says what is plann
 
 **The smoke test.** The workflow sets `SDL_VIDEODRIVER=dummy` and `SDL_AUDIODRIVER=dummy`, which tell SDL to use a fake screen and sound card, and runs the packaged program for 30 frames. A missing data file or module makes it exit with an error and fails the build. Without this step a broken package would only be discovered by the first person to download it.
 
+**A trap we hit.** The first Windows build failed with `Unable to find '\\d\\a\\project_gg\\...\\data\\levels'`. The script built absolute paths in Git Bash, where drive D is written `/d/...`. PyInstaller is a native Windows program and read that as a path on the current drive. Relative paths mean the same thing to both, so the script now uses only those. Lesson: on Windows runners a bash script and the programs it starts may disagree about what a path looks like.
+
 **Known limits.** The builds are not code-signed. macOS will say the app is from an unidentified developer (right-click, Open, the first time) and Windows SmartScreen may warn. Signing needs paid developer certificates.
 
 **Where to look.** `desktop/build.sh`, `desktop/main.py`, `.github/workflows/release-desktop.yml`.
