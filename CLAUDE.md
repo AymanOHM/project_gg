@@ -1,6 +1,6 @@
 # Project GG
 
-**Read `docs/ROADMAP.md` and `docs/HANDOFF.md` before doing anything.** The roadmap is the plan; the handoff says where the work stands and lists the exact next steps.
+**Read `docs/ROADMAP.md` and `docs/HANDOFF.md` before doing anything.** The roadmap is the plan; the handoff says where the work stands and lists the exact next steps. `docs/JOURNAL.md` explains why the code is the way it is.
 
 ## Goal
 
@@ -27,6 +27,7 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `spikes/` | Throwaway experiments. Do not build on them |
 | `docs/ROADMAP.md` | Phases, tasks, gates, backlog. Source of truth. |
 | `docs/HANDOFF.md` | Current status and ordered next steps |
+| `docs/JOURNAL.md` | Learning journal: what was done, why, how it works. One entry per PR or decision |
 | `docs/adr/` | Architecture decision records, one page each |
 | `docs/spikes/` | Spike write-ups |
 | `docs/issues/` | Ready-to-paste GitHub issue bodies |
@@ -59,7 +60,10 @@ CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR.
 - Commits are authored and committed as Ayman (`git config user.name` → `AymanOHM`). If the identity is different, stop and ask.
 - **No AI attribution anywhere**: no `Co-Authored-By` trailer, no "Generated with" line, no session links, in commits, PR titles, PR bodies or release notes. After committing, check with `git log -1 --format=full`.
 - Short-lived branches off `main`: `chore/…`, `feat/…`, `refactor/…`, `spike/…`, `docs/…`. Conventional commits, small steps.
-- Push branches and open PRs. **Never merge, never push to `main`, never force-push a shared branch, never rewrite history.**
+- Push branches and open PRs against the current integration branch (`phase-2` now; see `docs/HANDOFF.md`). You may merge a PR into the integration branch once CI is green, with a merge commit (`gh pr merge --merge`), not a squash.
+- **`main` only moves at major milestones** (a phase gate, a first deployment), by merging the integration branch into it through a PR. If you are not sure something is a milestone, it is not: ask Ayman.
+- **Never push directly to `main`, never force-push, never rewrite history.**
+- PR #38 (removing the v1 game) stays open and unmerged until Ayman says so.
 - Every PR description has: what changed, why, how to test, risks, roadmap task IDs.
 - Do not @-mention people in PRs, issues or releases unless Ayman asks.
 
@@ -69,4 +73,5 @@ CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR.
 - Reversible implementation details: decide, and note them in the PR description.
 - Open decisions that are not yours to make: matchmaker language (Node vs Python) and hosting direction (see `docs/HANDOFF.md`).
 - Update `docs/HANDOFF.md` after every PR or decision.
+- **This project is a learning exercise for Ayman.** In the same PR as any change, add an entry to `docs/JOURNAL.md` with the headings used there (problem, what we did, why this way, how it works, where to look). Explain the reasoning and the mechanism, including what went wrong, in plain language. Do not just list what changed; the PR description does that.
 - Quality bar: working code with tests, ruff-clean, behaviour preserved. No speculative abstraction.
