@@ -11,11 +11,63 @@ import pygame as pg  # noqa: E402
 from gg_client.__main__ import LEVEL_PATH, main  # noqa: E402
 from gg_client.debug_renderer import SKY, DebugRenderer  # noqa: E402
 from gg_client.keyboard import KEYMAP, read_inputs  # noqa: E402
+from gg_client.sprite_renderer import SpriteRenderer  # noqa: E402
 from gg_core import Match, PlayerInput, World, load_level  # noqa: E402
 
 
 def test_main_loop_runs_frames_headless():
     asyncio.run(main(max_frames=30))
+    asyncio.run(main(max_frames=30, debug=True))
+
+
+def played_match(ticks=243):
+    """p1 crosses the arena to p2's platform and opens fire; one bullet is in the air."""
+    level = load_level(LEVEL_PATH)
+    match = Match([level], countdown_ticks=100)
+    for t in range(ticks):
+        p1 = PlayerInput(right=t < 236, jump=t == 146, fire=t > 240)
+        p2 = PlayerInput(left=t == 250, fire=t > 250)
+        match.step({"p1": p1, "p2": p2})
+    return level, match
+
+
+def test_sprite_renderer_draws_players_tiles_and_bullets():
+    pg.init()
+    pg.display.set_mode((1280, 720))
+    screen = pg.Surface((1280, 720))
+    level, match = played_match()
+    renderer = SpriteRenderer(screen)
+    renderer.load_level(level)
+    snap = match.snapshot()
+    assert snap["bullets"]
+    for _ in range(300):  # let the camera settle
+        renderer.draw(snap)
+    for thing in [*snap["players"], *snap["bullets"]]:
+        rect = renderer.camera.to_screen(thing["x"], thing["y"], thing["w"], thing["h"])
+        box = screen.subsurface(rect.clip(screen.get_rect()))
+        colours = {
+            tuple(box.get_at((x, y)))[:3]
+            for x in range(box.get_width())
+            for y in range(box.get_height())
+        }
+        assert len(colours) > 2, f"nothing drawn for {thing['id']}"
+
+
+def test_sprite_renderer_loads_no_images_once_warm(monkeypatch):
+    pg.init()
+    pg.display.set_mode((1280, 720))
+    level, match = played_match()
+    renderer = SpriteRenderer(pg.Surface((1280, 720)))
+    renderer.load_level(level)
+    renderer.draw(match.snapshot())
+
+    def fail(*args, **kwargs):
+        raise AssertionError("image loaded or scaled during draw")
+
+    monkeypatch.setattr(pg.image, "load", fail)
+    monkeypatch.setattr(pg.transform, "scale", fail)
+    for _ in range(50):
+        renderer.draw(match.snapshot())
 
 
 def test_debug_renderer_draws_a_snapshot():

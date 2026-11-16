@@ -19,7 +19,7 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `game.py`, `scripts/`, `map.json` | The original v1 game. Frozen reference code: do not refactor or lint it. It is deleted once `gg_client` replaces it. |
 | `data/` | Art, audio, maps |
 | `gg_core/` | Headless rules: `World` (one round), `Match` (rounds, countdown, score), inputs, level loader, fixed-step clock, bots |
-| `gg_client/` | `Renderer` protocol, keyboard map, a rectangle-only debug renderer, `python -m gg_client` |
+| `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
 | `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
 | `tools/` | `record_v1_traces.py` (re-record the traces), `convert_v1_map.py` |
@@ -38,7 +38,7 @@ uv run pytest -q             # tests
 uv run ruff check .          # lint
 uv run ruff format .         # format
 uv run python game.py        # original game (fullscreen; Enter starts, Q quits)
-uv run python -m gg_client   # new rules with the debug renderer (Esc quits)
+uv run python -m gg_client   # the rewrite: local best of three (Esc quits; --debug for collision boxes)
 ```
 
 CI (`.github/workflows/ci.yml`) runs ruff and pytest on every PR. Keep it green.

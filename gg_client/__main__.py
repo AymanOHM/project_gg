@@ -1,8 +1,10 @@
 """Local two-player game on one keyboard:  uv run python -m gg_client
 
+Add --debug to draw plain rectangles (collision boxes) instead of sprites.
+
 p1: A/D move, W jump, S fast fall, Space fire.
 p2: arrows move/jump/fast fall, Right Shift or / fire (numpad 4/6/8/5/0 also work).
-A match is best of three. Enter starts a new match once one is over. Esc quits.
+A match is best of three. Enter starts a new match once one is over. Esc or Q quits.
 
 The loop is async with one `await` per frame, which is what pygbag needs to run
 the same file in a browser.
@@ -18,18 +20,19 @@ from gg_core import MATCH_OVER, FixedStep, Match, load_level
 
 from .debug_renderer import DebugRenderer
 from .keyboard import read_inputs
+from .sprite_renderer import SpriteRenderer
 
 LEVEL_PATH = Path(__file__).resolve().parent.parent / "data" / "levels" / "arena.json"
 
 
-async def main(max_frames: int | None = None) -> None:
+async def main(max_frames: int | None = None, debug: bool = False) -> None:
     pg.init()
     screen = pg.display.set_mode((1280, 720))
     pg.display.set_caption("Project GG")
     frame_timer = pg.time.Clock()
 
     level = load_level(LEVEL_PATH)
-    renderer = DebugRenderer(screen)
+    renderer = DebugRenderer(screen) if debug else SpriteRenderer(screen)
     renderer.load_level(level)
     match = Match([level])
     fixed = FixedStep()
@@ -37,7 +40,9 @@ async def main(max_frames: int | None = None) -> None:
     frames = 0
     while max_frames is None or frames < max_frames:
         for event in pg.event.get():
-            if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
+            if event.type == pg.QUIT or (
+                event.type == pg.KEYDOWN and event.key in (pg.K_ESCAPE, pg.K_q)
+            ):
                 pg.quit()
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and match.phase == MATCH_OVER:
@@ -55,4 +60,6 @@ async def main(max_frames: int | None = None) -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(main(int(sys.argv[1]) if len(sys.argv) > 1 else None))
+    args = sys.argv[1:]
+    frames = next((int(a) for a in args if a.isdigit()), None)
+    asyncio.run(main(frames, debug="--debug" in args))
