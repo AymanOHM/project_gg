@@ -55,7 +55,7 @@ The 32 ms WebSocket figure is not network time. The loop polls the socket once p
 - Task 2.7 needs a decision: load the runtime from the pygbag CDN or self-host it.
 - New work: convert audio to OGG; add the client transport interface.
 
-## Static-hosting check (2026-11-17, first part of task 2.7)
+## Static-hosting check (2026-11-16, first part of task 2.7)
 
 The spike build was published unchanged to GitHub Pages (branch `gh-pages`, folder `spike/`): https://aymanohm.github.io/project_gg/spike/
 
