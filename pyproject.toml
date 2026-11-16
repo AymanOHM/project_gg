@@ -40,3 +40,6 @@ extend-exclude = ["game.py", "scripts", "test.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"spikes/*" = ["E501"]
