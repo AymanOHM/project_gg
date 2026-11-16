@@ -1,7 +1,9 @@
 """gg_core must reproduce the traces recorded from the v1 game code, tick for tick.
 
-The traces come from tools/record_v1_traces.py. A failure here means behaviour
-drifted from the original game.
+The traces were recorded by running v1's classes headless with OpenGL stubbed
+(tools/record_v1_traces.py, removed together with the v1 code; both are in the
+git history just before the commit that deleted scripts/). A failure here means
+behaviour drifted from the original game.
 """
 
 import gzip

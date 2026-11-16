@@ -1,6 +1,7 @@
 """Convert a v1 map file (the tutorial editor's format) to a gg_core level file.
 
-    uv run python tools/convert_v1_map.py map.json data/levels/arena.json --name arena
+    PYTHONPATH=. uv run python tools/convert_v1_map.py OLD_MAP.json \\
+        data/levels/NAME.json --name NAME
 
 v1 ignored the file's own tile_size (16) and hard-coded 45, and hard-coded the
 spawn points in game.py; both are written into the level here. The "offgrid"
