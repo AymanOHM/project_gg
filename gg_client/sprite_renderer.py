@@ -19,7 +19,9 @@ SKY = (72, 160, 211)
 # player (now p2) with the "player" sprites.
 PLAYER_SPRITES = {"p1": "player2", "p2": "player"}
 # Ticks each animation frame is shown (v1's img_dur).
-FRAME_TICKS = {"idle": 6, "run": 4, "jump": 5, "wall_slide": 5}
+FRAME_TICKS = {"idle": 6, "run": 4, "jump": 5, "wall_slide": 5, "dash": 5}
+# Actions drawn with another action's pictures: the tutorial art calls its dash pose "slide".
+ACTION_FOLDERS = {"dash": "slide"}
 
 GUN_SIZE = (15, 13)
 GUN_OFFSET_RIGHT = (21, 15)  # from the player's bottom-left corner, facing right
@@ -169,7 +171,7 @@ class SpriteRenderer:
         sprites = PLAYER_SPRITES.get(p["id"], "player")
         key = (sprites, p["action"])
         if key not in self.players:
-            folder = IMAGES / "entities" / sprites / p["action"]
+            folder = IMAGES / "entities" / sprites / ACTION_FOLDERS.get(p["action"], p["action"])
             self.players[key] = [_both_ways(f) for f in _load_frames(folder, size)]
         return self.players[key]
 

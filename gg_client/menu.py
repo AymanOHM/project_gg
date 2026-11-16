@@ -17,6 +17,7 @@ BUTTON_LABELS = {
     "jump": "JUMP",
     "fast_fall": "FAST FALL",
     "fire": "FIRE",
+    "dash": "DASH",
 }
 
 
@@ -158,7 +159,7 @@ def draw_menu(screen: pg.Surface, menu: Menu, bob: float = 0.0) -> None:
     items = menu.items()
     long_list = len(items) > 6  # the controls screen
     scale = 3 if long_list else 4
-    line = 36 if long_list else 62
+    line = 32 if long_list else 62
     top = height * (0.3 if long_list else 0.42)
     for i, (_id, text) in enumerate(items):
         selected = i == menu.index

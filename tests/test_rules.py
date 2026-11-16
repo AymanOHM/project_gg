@@ -203,3 +203,107 @@ def test_players_do_not_block_each_other():
     p1 = world.players["p1"]
     steps(world, 30, PlayerInput(right=True))
     assert p1.x == 100 + 30 * c.RUN_SPEED
+
+
+# ---------------------------------------------------------------------- dash
+# Not in v1 (roadmap task 2.5). The v1 traces never press dash, so they still
+# pass unchanged; these tests are the whole specification of the dash.
+
+DASH = PlayerInput(dash=True)
+DASH_LENGTH = c.DASH_TICKS * c.DASH_SPEED
+
+
+def dash_events(world):
+    return [e for e in world.snapshot()["events"] if e["type"] == "dash"]
+
+
+def test_dash_on_the_ground_covers_its_length_then_stops():
+    world = make_world()
+    p = world.players["p1"]
+    x = p.x
+    steps(world, 1, DASH)
+    assert dash_events(world) == [{"type": "dash", "player": "p1"}]
+    assert p.x == x + c.DASH_SPEED and p.action == "dash"
+    steps(world, c.DASH_TICKS - 1, DASH)
+    assert p.x == x + DASH_LENGTH and p.hit_down and p.y == FLOOR_TOP
+    steps(world, 5, DASH)  # still held: no second dash, no drifting on
+    assert p.x == x + DASH_LENGTH and p.action == "idle"
+
+
+def test_dash_goes_the_way_the_player_faces_unless_a_direction_is_held():
+    world = make_world(p1_x=600)
+    p = world.players["p1"]
+    steps(world, 2, PlayerInput(left=True))
+    steps(world, 1)
+    x = p.x
+    steps(world, c.DASH_TICKS, DASH)  # facing left, nothing held
+    assert p.x == x - DASH_LENGTH
+    steps(world, c.DASH_COOLDOWN_TICKS)
+    x = p.x
+    steps(world, c.DASH_TICKS, PlayerInput(right=True, dash=True))
+    assert p.x == x + DASH_LENGTH and p.facing == 1
+
+
+def test_dash_is_not_available_again_until_the_cooldown_has_passed():
+    world = make_world()
+    steps(world, 1, DASH)
+    steps(world, c.DASH_COOLDOWN_TICKS - 2)
+    steps(world, 1, DASH)  # one tick too early
+    assert dash_events(world) == []
+    steps(world, 1)
+    steps(world, 1, DASH)
+    assert len(dash_events(world)) == 1
+
+
+def test_dash_in_the_air_holds_height_and_then_falls_from_rest():
+    world = make_world()
+    p = world.players["p1"]
+    steps(world, 1, JUMP)
+    steps(world, 10)
+    assert p.vy > 0  # still rising
+    x, y = p.x, p.y
+    steps(world, c.DASH_TICKS, DASH)
+    assert (p.x, p.y) == (x + DASH_LENGTH, y) and p.vy == 0
+    steps(world, 1, DASH)
+    assert p.vy == -c.GRAVITY and p.action == "jump"
+
+
+def test_dash_carries_a_player_across_a_gap_in_the_floor():
+    world = make_world()
+    p = world.players["p1"]
+    p.x = 40 * TILE - c.PLAYER_WIDTH - c.DASH_SPEED  # two dash ticks from the edge
+    steps(world, 2)
+    assert p.hit_down
+    steps(world, c.DASH_TICKS, DASH)
+    assert p.x > 40 * TILE and p.y > FLOOR_TOP - 1  # past the edge, not yet fallen
+
+
+def test_a_wall_ends_a_dash():
+    world = make_world(wall_at=4)
+    p = world.players["p1"]
+    steps(world, c.DASH_TICKS, DASH)
+    assert p.x == 4 * TILE - c.PLAYER_WIDTH and p.dash_ticks == 0
+    steps(world, 1)
+    assert p.action != "dash"
+
+
+def test_a_jump_cuts_a_dash_short():
+    world = make_world()
+    p = world.players["p1"]
+    steps(world, 2, DASH)
+    x = p.x
+    steps(world, 1, PlayerInput(dash=True, jump=True))
+    assert p.dash_ticks == 0 and p.x == x and p.action != "dash"
+    assert p.vy == pytest.approx(c.JUMP_SPEED - c.GRAVITY)
+
+
+def test_dash_cannot_pass_through_a_wall_one_tile_thick():
+    assert c.DASH_SPEED < TILE
+    world = make_world(wall_at=4)
+    p = world.players["p1"]
+    for start in range(60, 145):  # every distance from the wall
+        p.x, p.dash_ticks, p.dash_ready_tick = start, 0, 0
+        steps(world, 1)
+        steps(world, c.DASH_TICKS, DASH)
+        steps(world, 1)
+        assert p.x <= 4 * TILE - c.PLAYER_WIDTH

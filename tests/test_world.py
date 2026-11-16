@@ -40,9 +40,10 @@ def test_ten_thousand_headless_ticks():
         for p in snap["players"]:
             assert p["health"] <= c.MAX_HEALTH
             assert -c.MAX_FALL_SPEED <= p["vy"] <= c.JUMP_SPEED
-            assert abs(p["vx"]) <= c.RUN_SPEED
-            assert p["action"] in {"idle", "run", "jump", "wall_slide"}
+            assert abs(p["vx"]) <= c.DASH_SPEED
+            assert p["action"] in {"idle", "run", "jump", "wall_slide", "dash"}
         assert len(snap["bullets"]) <= 8
+    assert any(e["type"] == "dash" for snap in snapshots for e in snap["events"])
 
 
 def test_same_inputs_give_the_same_game():

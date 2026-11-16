@@ -102,7 +102,7 @@ For the next model. Each step is one branch off `phase-2` and one PR into `phase
 2. **2.4 levels: done** (`meadow`, `cliffs`, `towers`; rotation in `LEVEL_ORDER`). Unverified: whether players can reach each other on `cliffs` and `towers`, and the camera does not zoom out when players are far apart.
 3. **2.8 desktop builds: done** (`desktop/build.sh`, `release-desktop.yml`). The zips are attached to a release when a version tag such as `v2.0` is pushed; no such tag exists yet. Builds are unsigned.
 4. **0.8, the rest: done.** 79 unused images deleted. Kept on purpose: `data/maps/` (source of the converted levels, which are not play-tested yet), `data/sfx/dash.ogg` (for 2.5) and `data/images/welcome.png` (only v1 loads it; delete it with v1 in PR #38). Licences are still unverified; Ayman handles them.
-5. **2.5 dash.** A behaviour change: it adds an input. Update ADR-002 and add tests in `tests/test_rules.py`; the v1 traces must still pass untouched, since no v1 scenario presses dash.
+5. **2.5 dash: done.** Left Shift for p1, `.` for p2. Distance, duration and cooldown (`gg_core/constants.py`) are untested guesses; nobody has played it. A dash gives no protection from bullets.
 6. **Milestone:** when 1–3 are merged into `phase-2`, open a PR from `phase-2` to `main` titled "Phase 2 complete" and ask Ayman before merging it.
 7. **Do not start Phase 3** (server, protocol, matchmaker) without Ayman.
 

@@ -63,6 +63,7 @@ def test_sprite_renderer_draws_players_tiles_and_bullets():
     renderer.load_level(level)
     snap = match.snapshot()
     assert snap["bullets"]
+    snap["players"][0]["action"] = "dash"  # drawn with the "slide" pictures
     for _ in range(300):  # let the camera settle
         renderer.draw(snap)
     for thing in [*snap["players"], *snap["bullets"]]:
@@ -112,10 +113,10 @@ def test_debug_renderer_draws_a_snapshot():
 
 def test_keyboard_maps_keys_to_player_inputs():
     pressed = {key: False for keys in KEYMAP.values() for group in keys.values() for key in group}
-    pressed[pg.K_a] = pressed[pg.K_SPACE] = pressed[pg.K_UP] = True
+    pressed[pg.K_a] = pressed[pg.K_SPACE] = pressed[pg.K_UP] = pressed[pg.K_PERIOD] = True
     inputs = read_inputs(pressed)
     assert inputs["p1"] == PlayerInput(left=True, fire=True)
-    assert inputs["p2"] == PlayerInput(jump=True)
+    assert inputs["p2"] == PlayerInput(jump=True, dash=True)
 
 
 def test_debug_renderer_draws_every_match_phase():
@@ -174,6 +175,7 @@ def test_audio_plays_each_ticks_events_once():
     assert audio.play_events(snap) == []  # same tick drawn again
     assert audio.play_events({"tick": 6, "events": [{"type": "unknown"}]}) == []
     assert audio.play_events({"tick": 7, "events": [{"type": "jump", "player": "p1"}]}) == ["jump"]
+    assert audio.play_events({"tick": 8, "events": [{"type": "dash", "player": "p1"}]}) == ["dash"]
 
 
 def test_the_client_plays_every_level_in_rotation():
