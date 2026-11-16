@@ -98,7 +98,7 @@ Not taken: 0.2 (board), 0.6 (branch protection), 0.7 (dev container), 1.6 (rende
 
 For the next model. Each step is one branch off `phase-2` and one PR into `phase-2`; merge it when CI is green. Add a `docs/JOURNAL.md` entry in every PR.
 
-1. **2.2 menu and options: done** (PR #43). Not done: a pause screen inside a match (Esc goes straight back to the menu).
+1. **2.2 menu and options: done** (PR #43). Esc in a match opens a pause menu (resume, options, quit to menu).
 2. **2.4 levels: done** (`meadow`, `cliffs`, `towers`; rotation in `LEVEL_ORDER`). `tests/test_level_reachability.py` proves each player can reach the other's start on every level. The camera zooms out (up to 1.6x) when players are far apart; its cost in the browser is unmeasured.
 3. **2.8 desktop builds: done** (`desktop/build.sh`, `release-desktop.yml`). The zips are attached to a release when a version tag such as `v2.0` is pushed; no such tag exists yet. Builds are unsigned.
 4. **0.8, the rest: done.** 79 unused images deleted. Kept on purpose: `data/maps/` (source of the converted levels, which are not play-tested yet), `data/sfx/dash.ogg` (for 2.5) and `data/images/welcome.png` (only v1 loads it; delete it with v1 in PR #38). Licences are still unverified; Ayman handles them.
@@ -109,7 +109,6 @@ For the next model. Each step is one branch off `phase-2` and one PR into `phase
 Every numbered step that could be done without Ayman is done. What is left needs him:
 
 - **Play it** (task 2.9). Things to judge: the dash numbers, whether `cliffs` and `towers` are playable, the sound balance, the menu lettering, and the rewrite against v1 (which decides PR #38).
-- **Small work that is in scope if he wants it:** a pause screen inside a match.
 - **Phase 3** starts with the interface session and the matchmaker language decision.
 
 After every step: update this file, run `uv run ruff check . && uv run ruff format --check . && uv run pytest -q`, commit, push, open the PR with the sections listed in `CLAUDE.md`.

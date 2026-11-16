@@ -420,3 +420,32 @@ The camera's `to_screen` now answers in the coordinates of the view, not of the 
 **A small trap.** Easing never quite arrives: the scale would hover at 1.0000001 for ever and the renderer would keep shrinking a picture by nothing. The camera snaps to exactly 1 once it is within a thousandth.
 
 **Where to look.** `gg_client/camera.py`, the top of `SpriteRenderer.draw` in `gg_client/sprite_renderer.py`, and the three camera tests at the end of `tests/test_client_smoke.py`.
+
+---
+
+## 24. Pausing: stopping the game without stopping the program
+
+**Problem.** Esc during a match threw the match away and showed the main menu. There was no way to stop for a moment, and no way to change the volume or a key without losing the score.
+
+**What we did.** Esc now opens a pause menu over the frozen game: RESUME, OPTIONS, QUIT TO MENU. Esc again resumes. After a match has ended, Esc still goes straight to the main menu, because there is nothing left to pause.
+
+**How pausing works.** It is one line. The loop already separated three things every frame: read events, advance the rules some number of ticks, draw. Pausing sets the number of ticks to zero and leaves the rest running:
+
+```python
+for _ in range(0 if paused else steps):
+    match.step(inputs)
+```
+
+The window still redraws 60 times a second, the music plays, the clouds drift, the menu responds. Only game time stands still. This works because the rules never look at a clock (entry 6): a `Match` that is not stepped cannot change, however long the pause lasts. A game that measured elapsed time inside its physics would have to be told about the pause explicitly, or it would leap forward on resume.
+
+**Why the clock is still advanced while paused.** `FixedStep.advance` is still called each frame and its result ignored. If it were skipped, the frame timer's next reading after resuming would not matter, but the fixed-step accumulator is fed from real time; calling it every frame keeps it from ever seeing one enormous gap and answering with a burst of catch-up ticks.
+
+**Reusing the menu.** The pause menu is a fourth screen of the existing `Menu` class, so it got the lettering, keyboard handling and options screens for nothing. The one new idea is `root`: the options screen needs to know where BACK leads, and that is now the main menu or the pause menu depending on how it was reached. A menu with fixed "back" targets works until the same screen is reachable from two places; then the way back has to be remembered rather than hard-coded.
+
+**A bug caught before it shipped.** `root` stays `"pause"` after resuming. If that match then ran to its end and the player pressed Esc, the game showed the main menu's place with the pause menu's contents. Leaving a finished match now calls `menu.open("main")`. The cause is general: state that is set on the way into something has to be reset on every way out, and there were two ways out.
+
+**How it is tested.** The menu logic has plain tests, as in entry 16. For the loop, a test wraps `Match.step` in a counter, queues an Esc key press, runs twenty frames and checks the counter is zero; then Esc twice and checks it is not. It tests the property that matters (no ticks while paused) without reaching into the loop's variables.
+
+**Rebinding during a match.** It works, with no code written for it: the loop reads `settings.keymap` every frame, so a key changed in the pause menu applies on the next tick.
+
+**Where to look.** The event handling and the `paused` lines in `gg_client/__main__.py`; `open` and `root` in `gg_client/menu.py`.
