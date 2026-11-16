@@ -1,2 +1,26 @@
+# Python
 __pycache__/
-/__pycache__
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# pygbag web builds
+build/web/
+*.apk
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local tooling
+.claude/settings.local.json
+.env
