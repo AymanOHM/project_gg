@@ -4,7 +4,7 @@ Last updated: 2026-11-16, evening, Cairo
 
 ## Status
 
-`main` holds Phase 0, Phase 1 and the playable part of Phase 2: `gg_core` (headless rules matching v1 tick for tick), `gg_client` (pygame-ce, sprites, sound, best of three) and the browser build, which is deployed by GitHub Actions to https://aymanohm.github.io/project_gg/ . The original game is still in the repo; its removal (PR #38) is held until Ayman has compared the two. Day-to-day work merges into the `phase-2` branch; `main` moves only at milestones. Phase 2 was merged into `main` on 2026-11-16 (#49) and `deploy-web` was run by hand afterwards, so the public page shows that build (menu, four levels, dash). No version tag exists yet, so no desktop build has been published. Nobody has play-tested or listened to the rewrite yet.
+`main` holds Phase 0, Phase 1 and the playable part of Phase 2: `gg_core` (headless rules matching v1 tick for tick), `gg_client` (pygame-ce, sprites, sound, best of three) and the browser build, which is deployed by GitHub Actions to https://aymanohm.github.io/project_gg/ . The original game is still in the repo; its removal (PR #38) is held until Ayman has compared the two. Day-to-day work merges into the `phase-2` branch; `main` moves only at milestones. Phase 2 was merged into `main` on 2026-11-16 (#49) and `deploy-web` was run by hand afterwards, so the public page shows that build (menu, four levels, dash). Since then `phase-2` has gained a level reachability test (#51), the zooming camera (#52) and the pause menu (#53); a second PR from `phase-2` to `main` is open for them and waits for Ayman. No version tag exists yet, so no desktop build has been published. Nobody has play-tested or listened to the rewrite yet.
 
 ## Branches and PRs
 
@@ -106,9 +106,15 @@ For the next model. Each step is one branch off `phase-2` and one PR into `phase
 6. **Milestone: done.** #49 merged into `main` and the page redeployed, both on Ayman's word. A version tag (which publishes the desktop zips) is still his call. New work keeps going to `phase-2` until he names the next integration branch.
 7. **Do not start Phase 3** (server, protocol, matchmaker) without Ayman.
 
-Every numbered step that could be done without Ayman is done. What is left needs him:
+Every Phase 2 code task is done. The only open Phase 2 task is **2.9, the play-test**, which needs people.
 
-- **Play it** (task 2.9). Things to judge: the dash numbers, whether `cliffs` and `towers` are playable, the sound balance, the menu lettering, and the rewrite against v1 (which decides PR #38).
+What needs Ayman:
+
+- **The open PR from `phase-2` to `main`** (camera zoom, pause menu, reachability test). After merging, run `deploy-web` by hand to publish it.
+- **Play it** (task 2.9), on the desktop and in a browser. Things to judge: the dash numbers, the four levels, the zoomed-out camera (and whether it stutters in the browser; `MAX_ZOOM_OUT` in `gg_client/sprite_renderer.py`), the sound balance, the menu lettering, and the rewrite against v1 (which decides PR #38).
+- **Not checked in a browser:** the dash keys, the pause menu and the camera zoom. The Chrome extension was not connected when this was attempted.
+- **`docs/ROADMAP.md`, "Progress (2026-11-16)"** is out of date (it still says Phase 0 and 1 are in review). Roadmap edits need his approval; proposed text: "Phases 0 and 1 and all Phase 2 code tasks are merged. Open: 2.9 play-test, 0.2, 0.6, licence check in 0.8."
+- **A version tag** (`v2.0`) publishes the desktop builds.
 - **Phase 3** starts with the interface session and the matchmaker language decision.
 
 After every step: update this file, run `uv run ruff check . && uv run ruff format --check . && uv run pytest -q`, commit, push, open the PR with the sections listed in `CLAUDE.md`.

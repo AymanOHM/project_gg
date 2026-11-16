@@ -438,7 +438,7 @@ for _ in range(0 if paused else steps):
 
 The window still redraws 60 times a second, the music plays, the clouds drift, the menu responds. Only game time stands still. This works because the rules never look at a clock (entry 6): a `Match` that is not stepped cannot change, however long the pause lasts. A game that measured elapsed time inside its physics would have to be told about the pause explicitly, or it would leap forward on resume.
 
-**Why the clock is still advanced while paused.** `FixedStep.advance` is still called each frame and its result ignored. If it were skipped, the frame timer's next reading after resuming would not matter, but the fixed-step accumulator is fed from real time; calling it every frame keeps it from ever seeing one enormous gap and answering with a burst of catch-up ticks.
+**What happens to the clock.** `FixedStep.advance` is still called every frame and its answer is thrown away. Nothing builds up: the frame timer measures one frame at a time, so the first frame after resuming sees an ordinary sixtieth of a second, not the length of the pause. (An earlier version of this entry claimed the call was needed to prevent a burst of catch-up ticks. It is not; skipping it would work as well. The claim was written before it was checked, which is its own small lesson.)
 
 **Reusing the menu.** The pause menu is a fourth screen of the existing `Menu` class, so it got the lettering, keyboard handling and options screens for nothing. The one new idea is `root`: the options screen needs to know where BACK leads, and that is now the main menu or the pause menu depending on how it was reached. A menu with fixed "back" targets works until the same screen is reachable from two places; then the way back has to be remembered rather than hard-coded.
 
@@ -449,3 +449,17 @@ The window still redraws 60 times a second, the music plays, the clouds drift, t
 **Rebinding during a match.** It works, with no code written for it: the loop reads `settings.keymap` every frame, so a key changed in the pause menu applies on the next tick.
 
 **Where to look.** The event handling and the `paused` lines in `gg_client/__main__.py`; `open` and `root` in `gg_client/menu.py`.
+
+---
+
+## 25. What "Phase 2 is done" can and cannot mean
+
+**Problem.** The instruction was to continue until Phase 2 is done. Phase 2 has ten tasks. Nine are code. The tenth, 2.9, is "play-test with about five people and fix the top three complaints".
+
+**Where it stands.** Every code task is merged into `phase-2`, with the three gaps the handoff had listed closed since the last milestone: levels proven crossable (entry 22), a camera that keeps both players in view (entry 23), and a pause menu (entry 24). 205 tests pass.
+
+**What could not be done.** Task 2.9 needs people. A program can check that a level can be crossed; it cannot say the dash is too short or the third level is dull. An attempt to at least try the browser build in Chrome also failed, because the browser extension that drives Chrome was not connected, so two things remain checked only on the desktop: that the dash keys reach the game in a browser, and what the zoomed-out camera costs there.
+
+**Why say so instead of calling it done.** A task list where "play-test" is ticked because the tests pass is worse than one where it is open, because the next person trusts it. The honest state is: built, tested by machine, not yet tested by people. The second milestone PR to `main` says exactly that and waits.
+
+**Where to look.** `docs/HANDOFF.md`, "Next steps".
