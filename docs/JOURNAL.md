@@ -350,3 +350,22 @@ Two details needed care. Both programs load whole folders (`load_images('tiles/g
 **What is not known.** Whether it feels good. The numbers are first guesses made without playing: distance, duration, cooldown, and whether a dash should protect from bullets (it does not). All three numbers are constants in one file. The random bot also presses dash now, which changes the games it plays for a given seed; nothing depended on the old ones.
 
 **Where to look.** `gg_core/world.py` (`_dash`, and the `dashing` / `hovering` lines in `_move`), `gg_core/constants.py`, the dash section at the end of `tests/test_rules.py`, `docs/adr/002-core-interfaces.md`.
+
+---
+
+## 21. Asking for a milestone: what a gate does and does not prove
+
+**Problem.** All the Phase 2 work that could be done alone was merged into `phase-2`. `main` only moves at milestones, and only when Ayman says so. How should the request be made so that the decision is easy and honest?
+
+**What we did.** Opened one pull request from `phase-2` to `main`, "Phase 2 complete", and left it unmerged. Its description sets the roadmap's gate next to what was checked.
+
+**Why an integration branch at all.** `main` is what the public page and the releases are built from, so it should only ever hold states someone has agreed to publish. `phase-2` is where finished pieces collect in the meantime. The milestone PR is then the one place where "is this ready to publish?" is asked, with the whole difference visible in one diff, instead of the question being spread over five small PRs that were each only about themselves.
+
+**The gate, read literally.** "A public GitHub Pages URL where two people on one keyboard play a full best-of-3." Three different kinds of evidence are involved, and they should not be confused:
+- *Automated and true now:* the tests play full matches headless, draw every level, and CI builds the browser bundle on every PR.
+- *True only after a step that has not happened:* the public page is built from `main` by a workflow that runs on a tag or by hand. Merging does not publish. Until the workflow runs, the URL shows the old build.
+- *Not automatable:* two people playing. No test says whether the dash feels right or whether the new levels are fun, or even crossable.
+
+**The lesson.** Green CI answers "does it still do what the tests describe". A gate asks "does it do what we wanted". The gap between the two is exactly the list a reviewer needs, so the PR states it rather than leaving it to be discovered.
+
+**Where to look.** The open PR from `phase-2` to `main`; `.github/workflows/deploy-web.yml` for when the page is rebuilt.

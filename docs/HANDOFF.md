@@ -1,10 +1,10 @@
 # Handoff
 
-Last updated: 2026-11-16, 09:00 Cairo
+Last updated: 2026-11-16, evening, Cairo
 
 ## Status
 
-`main` holds Phase 0, Phase 1 and the playable part of Phase 2: `gg_core` (headless rules matching v1 tick for tick), `gg_client` (pygame-ce, sprites, sound, best of three) and the browser build, which is deployed by GitHub Actions to https://aymanohm.github.io/project_gg/ . The original game is still in the repo; its removal (PR #38) is held until Ayman has compared the two. Day-to-day work now merges into the `phase-2` branch; `main` moves only at milestones. Nobody has play-tested or listened to the rewrite yet.
+`main` holds Phase 0, Phase 1 and the playable part of Phase 2: `gg_core` (headless rules matching v1 tick for tick), `gg_client` (pygame-ce, sprites, sound, best of three) and the browser build, which is deployed by GitHub Actions to https://aymanohm.github.io/project_gg/ . The original game is still in the repo; its removal (PR #38) is held until Ayman has compared the two. Day-to-day work merges into the `phase-2` branch; `main` moves only at milestones. `phase-2` is ahead of `main` by the menu and options (#43), three more levels (#44), desktop builds (#45), the asset clean-up (#46) and the dash (#47). A PR from `phase-2` to `main`, "Phase 2 complete", is open and waits for Ayman. The public page still shows the older build from `main`. Nobody has play-tested or listened to the rewrite yet.
 
 ## Branches and PRs
 
@@ -103,8 +103,14 @@ For the next model. Each step is one branch off `phase-2` and one PR into `phase
 3. **2.8 desktop builds: done** (`desktop/build.sh`, `release-desktop.yml`). The zips are attached to a release when a version tag such as `v2.0` is pushed; no such tag exists yet. Builds are unsigned.
 4. **0.8, the rest: done.** 79 unused images deleted. Kept on purpose: `data/maps/` (source of the converted levels, which are not play-tested yet), `data/sfx/dash.ogg` (for 2.5) and `data/images/welcome.png` (only v1 loads it; delete it with v1 in PR #38). Licences are still unverified; Ayman handles them.
 5. **2.5 dash: done.** Left Shift for p1, `.` for p2. Distance, duration and cooldown (`gg_core/constants.py`) are untested guesses; nobody has played it. A dash gives no protection from bullets.
-6. **Milestone:** when 1–3 are merged into `phase-2`, open a PR from `phase-2` to `main` titled "Phase 2 complete" and ask Ayman before merging it.
+6. **Milestone: waiting for Ayman.** The PR "Phase 2 complete" (`phase-2` → `main`) is open. Do not merge it without his word. After it is merged: run the `deploy-web` workflow by hand (or push a version tag) so the public page gets the new build, and push a tag such as `v2.0` if Ayman wants the desktop zips on a release. A tag is a release decision: ask first.
 7. **Do not start Phase 3** (server, protocol, matchmaker) without Ayman.
+
+Every numbered step that could be done without Ayman is done. What is left needs him:
+
+- **Play it** (task 2.9). Things to judge: the dash numbers, whether `cliffs` and `towers` are playable, the sound balance, the menu lettering, and the rewrite against v1 (which decides PR #38).
+- **Small work that is in scope if he wants it:** a pause screen inside a match; a camera that zooms out when players are far apart.
+- **Phase 3** starts with the interface session and the matchmaker language decision.
 
 After every step: update this file, run `uv run ruff check . && uv run ruff format --check . && uv run pytest -q`, commit, push, open the PR with the sections listed in `CLAUDE.md`.
 
