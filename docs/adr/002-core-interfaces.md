@@ -1,6 +1,6 @@
 # ADR-002: Core interfaces — step, inputs, snapshot, renderer
 
-- **Status:** Proposed — open for revision at the interface session
+- **Status:** Accepted by Ayman on 2026-11-16. Still open for revision at the interface session with the second developer
 - **Date:** 2026-11-16
 - **Covers:** roadmap tasks 1.2, 1.3, 1.4, 1.5, 1.9, 2.1 (rules part) and the contract for 1.6
 
@@ -60,8 +60,11 @@ The rules must run in three places (desktop client, browser client, game server)
 - The snapshot is not a save file: it leaves out internal state (wall-jump flags, cooldowns), so a world cannot be rebuilt from it. Prediction or reconnects will need a fuller state export later.
 - Player ids are `p1` (v1's WASD player, left spawn) and `p2` (v1's numpad player, right spawn).
 
+## Settled on 2026-11-16
+
+- A bullet may hit the player who fired it, as in v1. It almost never happens.
+- Round end keeps v1's order: damage dealt by a player later in the order ends the round one tick later.
+
 ## Open for the interface session
 
 - Whether `draw` should receive the previous snapshot too, instead of the renderer keeping it.
-- Whether sound cues (shot fired, hit, jump) should be events in the snapshot or derived by the client from differences between snapshots.
-- Whether a bullet may hit the player who fired it. v1 allows it; it almost never happens.
