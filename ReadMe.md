@@ -8,17 +8,29 @@ Project_gg is a 2-Player Python game made using opengl. While it's an incomplete
 
 ## Installation
 
-- Use this link [here](https://github.com/AymanOHM/project_gg/archive/refs/heads/main.zip) to download the zip file
-
-- Extract and open the extracted folder in any terminal
-
-- Run using:
+You need [uv](https://docs.astral.sh/uv/). It installs Python 3.12 and the dependencies for you.
 
 ```bash
-python game.py
+git clone https://github.com/AymanOHM/project_gg.git
+cd project_gg
+uv sync
+uv run python game.py
 ```
 
-- Only Base Python is needed(only for windows)
+The game opens fullscreen. Press Enter to start a round and Q to quit.
+
+The original Windows-only version, with its vendored libraries, is preserved as the [`v1` release](https://github.com/AymanOHM/project_gg/releases/tag/v1).
+
+## Development
+
+```bash
+uv run pytest            # tests
+uv run ruff check .      # lint
+uv run ruff format .     # format
+uv run pre-commit install  # run the checks on every commit
+```
+
+The plan for the project is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ## Controls
 
