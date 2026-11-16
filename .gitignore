@@ -24,3 +24,6 @@ desktop.ini
 # Local tooling
 .claude/settings.local.json
 .env
+
+# PyInstaller
+*.spec

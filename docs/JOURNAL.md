@@ -269,3 +269,25 @@ Other documents answer different questions: `docs/ROADMAP.md` says what is plann
 **What that test does not prove.** It does not prove the players can reach each other. These maps were designed for the tutorial's jump height, and here a jump is 65 pixels and a double jump twice that. `cliffs` and `towers` also start the players about 1,200 pixels apart on a 1,280-pixel-wide view, so both sit near the screen edges. A person has to play them; if they do not work, removing a level is one line in `LEVEL_ORDER`.
 
 **Where to look.** `tools/convert_v1_map.py`, `data/levels/`, `LEVEL_ORDER` in `gg_client/__main__.py`, `tests/test_level.py`.
+
+---
+
+## 18. Desktop builds: shipping Python to people who do not have Python
+
+**Problem.** Running the game needs uv, Python and the repo. A player wants one thing to download and double-click.
+
+**What we did.** `desktop/build.sh` packages the game with PyInstaller. A workflow, `release-desktop.yml`, builds it on a macOS machine and a Windows machine, runs it for 30 frames to prove it starts, zips it, and attaches the zips to the GitHub release when a version tag is pushed.
+
+**How PyInstaller works.** It follows the imports from an entry script, copies the Python interpreter, every imported module and the listed data files into one folder, and adds a small launcher program. Nothing is compiled to machine code; it is the same Python, bundled. Two consequences:
+- **No cross-compiling.** The bundle contains that system's interpreter and libraries, so a Windows build must be made on Windows. That is why the workflow uses a matrix: the same steps run once per operating system.
+- **Data files must be listed.** PyInstaller finds code by following imports, but it cannot know the game opens `data/images/...` at run time. Each folder is passed with `--add-data source:destination`.
+
+**Why no code changed for asset paths.** The game locates its data relative to the `gg_client` package (`Path(__file__).parent.parent / "data"`). Inside the bundle the package sits in the bundle's own folder, so copying the data to the same relative place is enough. Code that used the current working directory instead would have broken here; this is the usual reason to build paths from `__file__`.
+
+**The smoke test.** The workflow sets `SDL_VIDEODRIVER=dummy` and `SDL_AUDIODRIVER=dummy`, which tell SDL to use a fake screen and sound card, and runs the packaged program for 30 frames. A missing data file or module makes it exit with an error and fails the build. Without this step a broken package would only be discovered by the first person to download it.
+
+**A trap we hit.** The first Windows build failed with `Unable to find '\\d\\a\\project_gg\\...\\data\\levels'`. The script built absolute paths in Git Bash, where drive D is written `/d/...`. PyInstaller is a native Windows program and read that as a path on the current drive. Relative paths mean the same thing to both, so the script now uses only those. Lesson: on Windows runners a bash script and the programs it starts may disagree about what a path looks like.
+
+**Known limits.** The builds are not code-signed. macOS will say the app is from an unidentified developer (right-click, Open, the first time) and Windows SmartScreen may warn. Signing needs paid developer certificates.
+
+**Where to look.** `desktop/build.sh`, `desktop/main.py`, `.github/workflows/release-desktop.yml`.
