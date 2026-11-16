@@ -18,7 +18,12 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | [#29](https://github.com/AymanOHM/project_gg/pull/29) | `feat/world-step` | 1.4, 1.5, 1.7, 1.11 | Based on #28. The core of the session |
 | [#30](https://github.com/AymanOHM/project_gg/pull/30) | `feat/debug-client` | — | Based on #29. Playable client |
 | [#31](https://github.com/AymanOHM/project_gg/pull/31) | `docs/handoff-and-backlog` | — | Based on #30. This file, proposals, issue bodies |
-| next | `docs/asset-licences` | 0.8 (part) | Based on #31. `CREDITS.md` with what could be verified |
+| [#32](https://github.com/AymanOHM/project_gg/pull/32) | `docs/asset-licences` | 0.8 (part) | Based on #31. `CREDITS.md` with what could be verified |
+| [#33](https://github.com/AymanOHM/project_gg/pull/33) | `test/readable-rules` | 1.8 | Based on #32. Tests only; `gg_core` unchanged |
+| [#34](https://github.com/AymanOHM/project_gg/pull/34) | `feat/match-rounds` | 2.1 (rules part) | Based on #33. `Match`: countdown, best of three, score, level rotation |
+| [#35](https://github.com/AymanOHM/project_gg/pull/35) | `docs/adr-001-and-roadmap` | 0.1 | Based on #34. ADR-001 accepted; proposals B1–B14 applied to the roadmap |
+| [#36](https://github.com/AymanOHM/project_gg/pull/36) | `feat/sprite-renderer` | 1.6a | Based on #35. `SpriteRenderer`; view a frame by running the client |
+| #37 | `feat/clouds-and-screens` | 1.6b | Based on #36. Clouds, welcome screen, win screens |
 
 #27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
 
@@ -35,6 +40,8 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | 1.1, 1.2, 1.3, 1.9 | `gg_core` package, `FixedStep`, `PlayerInput`, level format and loader, `Renderer` protocol, ADR-002 (Proposed) |
 | 1.4, 1.5, 1.7 | `World.step`, `World.snapshot`, bullet fix, `p1`/`p2` |
 | 1.11 | `RandomBot` |
+| 1.8 | `tests/test_rules.py` |
+| 2.1 (rules part), 2.4 (rotation logic) | `gg_core.Match`; the debug client plays best of three. Menu and "back to menu" are client work, still open |
 | — | v1 trace recorder and parity tests; debug client |
 
 ## Decisions
@@ -46,25 +53,18 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 - Roadmap amendments approved and applied: relaxed Phase 0 gate, task 0.8, task 4.9.
 - A separate roadmap task for golden-master traces was not approved. The traces exist as test tooling inside the refactor PR instead.
 
+### Made by Ayman (2026-11-17)
+
+- **Hosting: web multiplayer with the same client on desktop.** Written up as `docs/adr/001-architecture-direction.md` (Accepted).
+- **Backlog proposals B1–B14: all accepted** and applied to `docs/ROADMAP.md`. `docs/proposals/2026-11-16-backlog.md` is kept as the record.
+- **1.6 (sprite renderer) moves to Ayman's column**, because 2.2 waits on it.
+- **Go-ahead to publish the pygbag spike to GitHub Pages** for the static-hosting check.
+
 ### Pending — Ayman
 
-**1. Hosting direction (for ADR-001).** Evidence: `docs/spikes/pygbag.md`.
-
-| Option | What it means | Cost |
-|---|---|---|
-| **A. Web multiplayer, same client on desktop (recommended)** | One pygame-ce client; browser and desktop both connect over WebSocket to the authoritative server | Task 4.9 (TLS path from browser to Agones game servers, L), a client transport layer with two implementations, an 11 MB runtime download |
-| B. Desktop-only backend | Clients are desktop builds; the web page is local play only | No 4.9, plain `ws://` to Agones ports works. Nobody can try online play from a link |
-| C. Decide after Phase 2 | Ship the local web game first, choose when Phase 3 starts | Nothing now; the protocol and transport stay open longer |
-
-Recommendation: **A**, with medium-high confidence. The spike found no blocker: 60 fps, working input, working WebSocket. A link anyone can click and play online is the strongest portfolio artefact, and the TLS gateway in 4.9 is real platform work worth showing.
-Strongest case against A: 4.9 is the hardest networking task in the plan and it exists only because of the browser. If time runs short in Phase 4, it is the task most likely to sink the gate. Option B removes it entirely, and the Kubernetes, Agones, observability and security work is the same either way.
-Nothing built so far depends on the choice.
-
-**2. Backlog proposals B1–B14** in `docs/proposals/2026-11-16-backlog.md`. None is applied.
-
-**3. Matchmaker language** (Node or Python): Ayman asks his friend. Nothing built depends on it.
-
-**4. ADR-002** is Proposed. It has three open questions for the interface session.
+- **Matchmaker language** (Node or Python): Ayman asks his friend. Nothing built depends on it.
+- **ADR-002** is Proposed. It has open questions for the interface session.
+- **Licence of the tutorial resources** (see `CREDITS.md`).
 
 ### Decided without Ayman — please confirm
 
@@ -77,6 +77,7 @@ Nothing built so far depends on the choice.
 | ruff skips `game.py` and `scripts/` | Frozen reference code | `pyproject.toml` |
 | `p1` = WASD player (left spawn), `p2` = numpad player | The README says so; v1's code and win screens disagreed | Rename in `gg_core` and re-record |
 | Fire cooldown is 15 ticks | 250 ms at 60 Hz | `gg_core/constants.py` and re-record |
+| Match flow: 3 s countdown with inputs ignored, 2 s pause after a round, first to 2, draws score for nobody | No v1 behaviour to copy; these are defaults on `Match(...)` | Constructor arguments |
 | A held jump key jumps once | v1 re-jumped on OS key repeat, which differs per machine | `World.step` |
 | v1's quirks are kept (self-hit possible, one-tick asymmetry at round end, gun one tick behind) | Bit-for-bit parity; listed in proposal B13 | `gg_core/world.py` and re-record |
 | `map.json`'s `offgrid` tiles are dropped | v1 drew them far off-screen | `tools/convert_v1_map.py` |
@@ -90,7 +91,7 @@ Nothing built so far depends on the choice.
 | 0.5 CI, ruff, pre-commit | The refactor needed green CI under it from the first PR |
 | 1.10 pygbag spike | It gates the hosting decision, which gates ADR-001 |
 | 1.11 headless bot | The 10,000-tick gate test needs an input generator; it is 20 lines |
-| 1.8 (partly) | Characterization had to come before the refactor. The trace tests cover jump, wall jump, collision, bullet hit and round end; readable unit tests are still his (see `docs/issues/1.8-…`) |
+| 1.8 | Characterization had to come before the refactor. The trace tests cover every mechanic; `tests/test_rules.py` then states the rules in plain numbers, which took minutes once the core existed |
 
 Not taken: 0.2 (board), 0.6 (branch protection), 0.7 (dev container), 1.6 (renderer). The debug client is deliberately rectangles only, so 1.6 is still a whole task.
 
@@ -100,7 +101,7 @@ For the next model. Do them in order; each is one branch and one PR. Do not star
 
 1. **Nothing can merge until Ayman reviews.** If PRs #26–#31 are still open, do not rebase or force-push them. Fix review comments with new commits on the same branch.
 2. **0.8 licence check: partly done** (branch `docs/asset-licences`). The health bar pack is CC BY 4.0. The tutorial resources have no licence on their download page; only Ayman can settle this, by checking the tutorial video's description or asking the author. Do not repeat the web search. The unused-asset deletion in `docs/issues/0.8-asset-licences.md` is still to do.
-3. **1.8 readable rule tests.** Follow `docs/issues/1.8-readable-rule-tests.md`. Precondition: #29 merged or branch from `feat/world-step`. Do not change `gg_core`; if a test disagrees with the code, the test is wrong.
+3. **1.8 readable rule tests: done** (`tests/test_rules.py`, branch `test/readable-rules`).
 4. **2.10 audio to OGG.** Follow `docs/issues/2.10-audio-to-ogg.md`. Precondition: Ayman approved proposal B7.
 5. **2.7 static-hosting check.** Follow `docs/issues/2.7-static-hosting-check.md`. Precondition: #27 merged. Publishing to GitHub Pages needs Ayman's explicit go-ahead.
 6. **1.6a sprite renderer.** Follow `docs/issues/1.6a-sprite-renderer.md`. Precondition: Ayman confirms his friend is not doing it.
