@@ -31,7 +31,7 @@ The original Windows-only version, with its vendored libraries, is preserved as 
 
 ## Play in a browser
 
-https://aymanohm.github.io/project_gg/play/ — two players on one keyboard. Click the page once, then press Enter. The first load downloads about 11 MB.
+https://aymanohm.github.io/project_gg/ — two players on one keyboard. Click the page once, then press Enter. The first load downloads about 11 MB.
 
 To build it yourself: `./web/build.sh --serve`, then open http://localhost:8000.
 
