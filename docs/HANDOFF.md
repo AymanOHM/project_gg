@@ -53,7 +53,7 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 - Roadmap amendments approved and applied: relaxed Phase 0 gate, task 0.8, task 4.9.
 - A separate roadmap task for golden-master traces was not approved. The traces exist as test tooling inside the refactor PR instead.
 
-### Made by Ayman (2026-11-17)
+### Made by Ayman (2026-11-16)
 
 - **Hosting: web multiplayer with the same client on desktop.** Written up as `docs/adr/001-architecture-direction.md` (Accepted).
 - **Backlog proposals B1–B14: all accepted** and applied to `docs/ROADMAP.md`. `docs/proposals/2026-11-16-backlog.md` is kept as the record.

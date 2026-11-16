@@ -25,6 +25,8 @@ The rules must run in three places (desktop client, browser client, game server)
 }
 ```
 
+The snapshot also has `"events"`: what happened during that tick, as a list of `{"type": "jump" | "shot" | "hit", "player": id}`. They exist for sound and effects; a shot or a hit can begin and end inside one tick and never show up in `bullets`. A server that sends fewer snapshots than ticks must collect the events of the ticks in between.
+
 `phase` is `playing` or `round_over`; `winner` is a player id, or `null` for a draw or an unfinished round. `action` is `idle`, `run`, `jump` or `wall_slide`, and `action_ticks` counts ticks since it changed, so a renderer picks the animation frame as `action_ticks // frame_duration % frame_count`. `v` goes up on any incompatible change.
 
 **4. The renderer sees snapshots, never the world.** `Renderer.load_level(level)` once per round, then `Renderer.draw(snapshot, alpha)` once per frame (`gg_client/renderer.py`). Local play and online play feed it the same dicts, so the renderer can be built and tested against recorded snapshots with no rules code running.

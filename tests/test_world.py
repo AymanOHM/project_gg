@@ -60,6 +60,7 @@ def test_snapshot_is_versioned_plain_json():
     assert snap["tick"] == 120
     assert snap["phase"] == PHASE_PLAYING and snap["winner"] is None
     assert [p["id"] for p in snap["players"]] == ["p1", "p2"]
+    assert isinstance(snap["events"], list)
     assert set(snap["players"][0]) == {
         "id", "x", "y", "w", "h", "vx", "vy", "facing",
         "action", "action_ticks", "health", "max_health",
@@ -122,3 +123,39 @@ def test_gg_core_imports_no_pygame_or_opengl():
         "assert not bad, bad\n"
     )
     subprocess.run([sys.executable, "-c", code], check=True, cwd=ROOT)
+
+
+def test_snapshot_events_report_jumps_shots_and_hits_for_one_tick_each():
+    world = World(ARENA)
+    for _ in range(90):
+        world.step({})
+    assert world.snapshot()["events"] == []
+
+    world.step({"p1": PlayerInput(jump=True)})
+    assert world.snapshot()["events"] == [{"type": "jump", "player": "p1"}]
+    world.step({"p1": PlayerInput(jump=True)})  # still held: no second jump
+    assert world.snapshot()["events"] == []
+
+    seen = []
+    for _ in range(c.FIRE_COOLDOWN_TICKS - 1):
+        world.step({"p2": PlayerInput(fire=True)})
+        seen += world.snapshot()["events"]
+    assert seen == [{"type": "shot", "player": "p2"}]
+
+
+def test_a_hit_is_an_event_even_when_the_bullet_never_appears_in_a_snapshot():
+    world = World(ARENA)
+    p1, p2 = world.players["p1"], world.players["p2"]
+    for _ in range(90):
+        world.step({})
+    p1.x, p1.y = p2.x - 60, p2.y  # point blank, facing right
+    world.step({})  # the gun catches up with the new position
+    events, bullets_seen = [], 0
+    for _ in range(3):
+        world.step({"p1": PlayerInput(fire=True)})
+        events += world.snapshot()["events"]
+        bullets_seen += len(world.snapshot()["bullets"])
+    assert {"type": "shot", "player": "p1"} in events
+    assert {"type": "hit", "player": "p2"} in events
+    assert p2.health == c.MAX_HEALTH - c.BULLET_DAMAGE
+    assert bullets_seen == 0

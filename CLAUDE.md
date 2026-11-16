@@ -19,9 +19,10 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `game.py`, `scripts/`, `map.json` | The original v1 game. Frozen reference code: do not refactor or lint it. It is deleted once `gg_client` replaces it. |
 | `data/` | Art, audio, maps |
 | `gg_core/` | Headless rules: `World` (one round), `Match` (rounds, countdown, score), inputs, level loader, fixed-step clock, bots |
-| `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
+| `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `Audio` (music and effects from snapshot events), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
 | `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
+| `web/` | Browser build: `main.py` (pygbag entry point) and `build.sh`. Output goes to `build/web-app/` (ignored) |
 | `tools/` | `record_v1_traces.py` (re-record the traces), `convert_v1_map.py` |
 | `spikes/` | Throwaway experiments. Do not build on them |
 | `docs/ROADMAP.md` | Phases, tasks, gates, backlog. Source of truth. |
@@ -39,9 +40,10 @@ uv run ruff check .          # lint
 uv run ruff format .         # format
 uv run python game.py        # original game (fullscreen; Enter starts, Q quits)
 uv run python -m gg_client   # the rewrite: local best of three (Esc quits; --debug for collision boxes)
+./web/build.sh --serve       # browser build on http://localhost:8000 (plain static servers do not work locally)
 ```
 
-CI (`.github/workflows/ci.yml`) runs ruff and pytest on every PR. Keep it green.
+CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR. Keep it green. `deploy-web.yml` publishes the web build to GitHub Pages on a version tag or when run by hand.
 
 ## Rules for `gg_core`
 

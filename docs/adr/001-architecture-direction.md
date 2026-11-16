@@ -1,7 +1,7 @@
 # ADR-001: Architecture direction — pygame-ce client on web and desktop, authoritative server on Agones
 
-- **Status:** Accepted (Ayman, 2026-11-17). To be presented at the kickoff.
-- **Date:** 2026-11-17
+- **Status:** Accepted (Ayman, 2026-11-16). To be presented at the kickoff.
+- **Date:** 2026-11-16
 - **Covers:** roadmap task 0.1; the hosting decision that followed spike 1.10
 
 ## Context

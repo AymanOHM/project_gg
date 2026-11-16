@@ -19,6 +19,7 @@ import pygame as pg
 
 from gg_core import MATCH_OVER, FixedStep, Match, load_level
 
+from .audio import Audio
 from .debug_renderer import DebugRenderer
 from .keyboard import read_inputs
 from .sprite_renderer import SpriteRenderer
@@ -40,6 +41,8 @@ async def main(
     # No match yet means the welcome screen is showing. The debug renderer has none.
     match = Match([level]) if debug or skip_title else None
     fixed = FixedStep()
+    audio = Audio()
+    audio.start_music()
 
     frames = 0
     while max_frames is None or frames < max_frames:
@@ -61,6 +64,7 @@ async def main(
             inputs = read_inputs(pg.key.get_pressed())
             for _ in range(steps):
                 match.step(inputs)
+                audio.play_events(match.snapshot())
             renderer.draw(match.snapshot(), fixed.alpha)
         pg.display.flip()
         frames += 1

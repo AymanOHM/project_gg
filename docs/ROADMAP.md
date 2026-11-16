@@ -8,7 +8,7 @@
 
 The plan in one line: pull the game rules out into a headless core, give it a pygame-ce client (desktop + web), and run that same core as an authoritative WebSocket game server on Kubernetes with Agones. About 7 phases over roughly 15 weeks, in 2-week sprints.
 
-**Decision (ADR-001, accepted 2026-11-17):** this direction, with online play from the browser as well as the desktop. Everything after Phase 1 depends on it.
+**Decision (ADR-001, accepted 2026-11-16):** this direction, with online play from the browser as well as the desktop. Everything after Phase 1 depends on it.
 
 **Strongest case against it:**
 
@@ -42,7 +42,7 @@ From Sprint 1 on, every sprint repeats the same rhythm: planning on day 1, refin
 - [ ] Split the rest of Phase 0 (0.3–0.7) between you at the kickoff
 - [ ] Both: book the interface design session and the end-of-sprint review
 
-### Progress (2026-11-17)
+### Progress (2026-11-16)
 
 In review, not yet merged (PRs #26–#34): 0.3, 0.4, 0.5, 0.8 (partly), 1.1–1.5, 1.7–1.11, and the rules half of 2.1. ADR-001 is accepted; ADR-002 is proposed. `docs/HANDOFF.md` has the details and the merge order.
 
