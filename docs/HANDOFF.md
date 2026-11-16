@@ -99,7 +99,7 @@ Not taken: 0.2 (board), 0.6 (branch protection), 0.7 (dev container), 1.6 (rende
 For the next model. Each step is one branch off `phase-2` and one PR into `phase-2`; merge it when CI is green. Add a `docs/JOURNAL.md` entry in every PR.
 
 1. **2.2 menu and options: done** (PR #43). Not done: a pause screen inside a match (Esc goes straight back to the menu).
-2. **2.4 convert the three maps.** For each of `data/maps/0.json`, `1.json`, `2.json`: write `data/levels/<name>.json` in the format of `gg_core/level.py`. These maps are Y-down, so negate each tile's `y`; keep `grass`, `stone` and `decor` tiles; `tile_size` 45; choose two spawn points on solid ground at least 10 tiles apart; `kill_y` 300 px below the lowest tile. Test that each level loads and both players are standing (`hit_down`) after 200 idle ticks. Pass all levels to `Match([...])` in `gg_client/__main__.py` and call `renderer.load_level` when `snapshot["match"]["level"]` changes.
+2. **2.4 levels: done** (`meadow`, `cliffs`, `towers`; rotation in `LEVEL_ORDER`). Unverified: whether players can reach each other on `cliffs` and `towers`, and the camera does not zoom out when players are far apart.
 3. **2.8 desktop builds** with PyInstaller in CI, as release assets for macOS and Windows.
 4. **0.8, the rest:** delete assets the game never loads (`web/build.sh` lists what it loads). Keep `data/maps/` until step 2 is done, and `data/sfx/dash.ogg`.
 5. **2.5 dash.** A behaviour change: it adds an input. Update ADR-002 and add tests in `tests/test_rules.py`; the v1 traces must still pass untouched, since no v1 scenario presses dash.
