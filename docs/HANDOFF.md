@@ -1,31 +1,17 @@
 # Handoff
 
-Last updated: 2026-11-16 (end of the first working session)
+Last updated: 2026-11-16, evening, Cairo
 
 ## Status
 
-Phase 0 is done except the board, branch protection and licence verification. Phase 1 is implemented except the sprite renderer (1.6): `gg_core` runs headless, imports no pygame or OpenGL, passes a 10,000-tick test and reproduces the original game's movement and combat bit for bit on about 8,000 recorded ticks. A plain rectangle client makes it playable (`uv run python -m gg_client`). The pygbag spike says the browser client is feasible. Six PRs are open and stacked; nothing is merged. Two decisions wait for Ayman: the hosting direction and the backlog proposals.
+`main` holds Phase 0, Phase 1 and the playable part of Phase 2: `gg_core` (headless rules matching v1 tick for tick), `gg_client` (pygame-ce, sprites, sound, best of three) and the browser build, which is deployed by GitHub Actions to https://aymanohm.github.io/project_gg/ . The original game is still in the repo; its removal (PR #38) is held until Ayman has compared the two. Day-to-day work merges into the `phase-2` branch; `main` moves only at milestones. `phase-2` is ahead of `main` by the menu and options (#43), three more levels (#44), desktop builds (#45), the asset clean-up (#46) and the dash (#47). A PR from `phase-2` to `main`, "Phase 2 complete", is open and waits for Ayman. The public page still shows the older build from `main`. Nobody has play-tested or listened to the rewrite yet.
 
-## Open PRs — merge in this order
+## Branches and PRs
 
-Each PR is based on the one above it. After merging one, GitHub retargets the next to `main`. Use squash merge only if you merge strictly top to bottom; otherwise use a merge commit so the stack does not conflict.
-
-| # | Branch | Tasks | Notes for the reviewer |
-|---|---|---|---|
-| [#26](https://github.com/AymanOHM/project_gg/pull/26) | `chore/repo-cleanup` | 0.3, 0.4, 0.5, 0.8 (part) | Deletes 45 MB. Roadmap amendments are in here |
-| [#27](https://github.com/AymanOHM/project_gg/pull/27) | `spike/pygbag` | 1.10 | Based on #26, independent of #28–#31. Read `docs/spikes/pygbag.md` |
-| [#28](https://github.com/AymanOHM/project_gg/pull/28) | `feat/core-interfaces` | 1.1, 1.2, 1.3, 1.9 | Based on #26. Read ADR-002 first |
-| [#29](https://github.com/AymanOHM/project_gg/pull/29) | `feat/world-step` | 1.4, 1.5, 1.7, 1.11 | Based on #28. The core of the session |
-| [#30](https://github.com/AymanOHM/project_gg/pull/30) | `feat/debug-client` | — | Based on #29. Playable client |
-| [#31](https://github.com/AymanOHM/project_gg/pull/31) | `docs/handoff-and-backlog` | — | Based on #30. This file, proposals, issue bodies |
-| [#32](https://github.com/AymanOHM/project_gg/pull/32) | `docs/asset-licences` | 0.8 (part) | Based on #31. `CREDITS.md` with what could be verified |
-| [#33](https://github.com/AymanOHM/project_gg/pull/33) | `test/readable-rules` | 1.8 | Based on #32. Tests only; `gg_core` unchanged |
-| [#34](https://github.com/AymanOHM/project_gg/pull/34) | `feat/match-rounds` | 2.1 (rules part) | Based on #33. `Match`: countdown, best of three, score, level rotation |
-| [#35](https://github.com/AymanOHM/project_gg/pull/35) | `docs/adr-001-and-roadmap` | 0.1 | Based on #34. ADR-001 accepted; proposals B1–B14 applied to the roadmap |
-| [#36](https://github.com/AymanOHM/project_gg/pull/36) | `feat/sprite-renderer` | 1.6a | Based on #35. `SpriteRenderer`; view a frame by running the client |
-| #37 | `feat/clouds-and-screens` | 1.6b | Based on #36. Clouds, welcome screen, win screens |
-
-#27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
+- **`main`**: milestones only. Merged so far: #26 (Phase 0), #28 (Phase 1; it contains #29–#37), #27 (pygbag spike), #41 (browser build and sound; it replaced #39 and #40, which are closed).
+- **`phase-2`**: the integration branch. Open PRs against it and merge them there when CI is green.
+- **[#38](https://github.com/AymanOHM/project_gg/pull/38) `chore/remove-v1-code`**: open, held. Do not merge. It is out of date with `main` and will need `main` merged into it, or redoing, when Ayman gives the go-ahead (`docs/issues` no longer has its checklist; the PR description lists what it deletes).
+- The `gh-pages` branch is a leftover from the first hand-published build. Pages no longer uses it.
 
 ## Done this session
 
@@ -59,6 +45,19 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 - **Backlog proposals B1–B14: all accepted** and applied to `docs/ROADMAP.md`. `docs/proposals/2026-11-16-backlog.md` is kept as the record.
 - **1.6 (sprite renderer) moves to Ayman's column**, because 2.2 waits on it.
 - **Go-ahead to publish the pygbag spike to GitHub Pages** for the static-hosting check.
+
+### Made by Ayman (2026-11-16, second round)
+
+- **Merging:** PRs may be merged into feature branches; `main` only at major milestones.
+- **The second developer is out of the loop for now.** Do not wait for his review.
+- **v1 removal is delayed:** keep PR #38 unmerged.
+- **No play-test until Ayman is back;** carry on with the current behaviour.
+- **Licences:** Ayman handles them at the end. Do not spend more time on them.
+- **ADR-002 accepted.** Bullets may hit their shooter and round end keeps v1's order.
+- **Pages source is GitHub Actions;** `main` is protected from deletion.
+- **Menu (2.2) must look like the welcome screen** (white pixel lettering with a dark shadow).
+- **Desktop builds (2.8) are approved.** Phase 3 still waits for the interface session.
+- **Keep a learning journal** (`docs/JOURNAL.md`): the why and how of every change.
 
 ### Pending — Ayman
 
@@ -97,18 +96,23 @@ Not taken: 0.2 (board), 0.6 (branch protection), 0.7 (dev container), 1.6 (rende
 
 ## Next steps
 
-For the next model. Do them in order; each is one branch and one PR. Do not start a step whose precondition is not met; go to the next one.
+For the next model. Each step is one branch off `phase-2` and one PR into `phase-2`; merge it when CI is green. Add a `docs/JOURNAL.md` entry in every PR.
 
-1. **Nothing can merge until Ayman reviews.** If PRs #26–#31 are still open, do not rebase or force-push them. Fix review comments with new commits on the same branch.
-2. **0.8 licence check: partly done** (branch `docs/asset-licences`). The health bar pack is CC BY 4.0. The tutorial resources have no licence on their download page; only Ayman can settle this, by checking the tutorial video's description or asking the author. Do not repeat the web search. The unused-asset deletion in `docs/issues/0.8-asset-licences.md` is still to do.
-3. **1.8 readable rule tests: done** (`tests/test_rules.py`, branch `test/readable-rules`).
-4. **2.10 audio to OGG.** Follow `docs/issues/2.10-audio-to-ogg.md`. Precondition: Ayman approved proposal B7.
-5. **2.7 static-hosting check.** Follow `docs/issues/2.7-static-hosting-check.md`. Precondition: #27 merged. Publishing to GitHub Pages needs Ayman's explicit go-ahead.
-6. **1.6a sprite renderer.** Follow `docs/issues/1.6a-sprite-renderer.md`. Precondition: Ayman confirms his friend is not doing it.
-7. **ADR-001.** Precondition: Ayman has chosen the hosting option. One page in `docs/adr/001-architecture-direction.md`, same headings as ADR-002, status Accepted, using the option table and the spike numbers above.
-8. **Apply approved backlog proposals** to `docs/ROADMAP.md`, one commit, listing the proposal IDs in the message. Apply only the IDs Ayman names.
+1. **2.2 menu and options: done** (PR #43). Not done: a pause screen inside a match (Esc goes straight back to the menu).
+2. **2.4 levels: done** (`meadow`, `cliffs`, `towers`; rotation in `LEVEL_ORDER`). Unverified: whether players can reach each other on `cliffs` and `towers`, and the camera does not zoom out when players are far apart.
+3. **2.8 desktop builds: done** (`desktop/build.sh`, `release-desktop.yml`). The zips are attached to a release when a version tag such as `v2.0` is pushed; no such tag exists yet. Builds are unsigned.
+4. **0.8, the rest: done.** 79 unused images deleted. Kept on purpose: `data/maps/` (source of the converted levels, which are not play-tested yet), `data/sfx/dash.ogg` (for 2.5) and `data/images/welcome.png` (only v1 loads it; delete it with v1 in PR #38). Licences are still unverified; Ayman handles them.
+5. **2.5 dash: done.** Left Shift for p1, `.` for p2. Distance, duration and cooldown (`gg_core/constants.py`) are untested guesses; nobody has played it. A dash gives no protection from bullets.
+6. **Milestone: waiting for Ayman.** The PR "Phase 2 complete" (`phase-2` → `main`) is open. Do not merge it without his word. After it is merged: run the `deploy-web` workflow by hand (or push a version tag) so the public page gets the new build, and push a tag such as `v2.0` if Ayman wants the desktop zips on a release. A tag is a release decision: ask first.
+7. **Do not start Phase 3** (server, protocol, matchmaker) without Ayman.
 
-After every step: update this file (Status, Done, Open PRs, Next steps), run `uv run ruff check . && uv run ruff format --check . && uv run pytest -q`, commit, push, open the PR.
+Every numbered step that could be done without Ayman is done. What is left needs him:
+
+- **Play it** (task 2.9). Things to judge: the dash numbers, whether `cliffs` and `towers` are playable, the sound balance, the menu lettering, and the rewrite against v1 (which decides PR #38).
+- **Small work that is in scope if he wants it:** a pause screen inside a match; a camera that zooms out when players are far apart.
+- **Phase 3** starts with the interface session and the matchmaker language decision.
+
+After every step: update this file, run `uv run ruff check . && uv run ruff format --check . && uv run pytest -q`, commit, push, open the PR with the sections listed in `CLAUDE.md`.
 
 ## Known risks and traps
 

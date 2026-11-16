@@ -19,7 +19,9 @@ SKY = (72, 160, 211)
 # player (now p2) with the "player" sprites.
 PLAYER_SPRITES = {"p1": "player2", "p2": "player"}
 # Ticks each animation frame is shown (v1's img_dur).
-FRAME_TICKS = {"idle": 6, "run": 4, "jump": 5, "wall_slide": 5}
+FRAME_TICKS = {"idle": 6, "run": 4, "jump": 5, "wall_slide": 5, "dash": 5}
+# Actions drawn with another action's pictures: the tutorial art calls its dash pose "slide".
+ACTION_FOLDERS = {"dash": "slide"}
 
 GUN_SIZE = (15, 13)
 GUN_OFFSET_RIGHT = (21, 15)  # from the player's bottom-left corner, facing right
@@ -63,8 +65,7 @@ class SpriteRenderer:
         self.bullets: dict[tuple[int, int], dict[int, pg.Surface]] = {}
         self.health_colour = pg.image.load(IMAGES / "health_simple.png").get_at((0, 0))
         self.screens = {
-            name: _load(IMAGES / f"{name}.png", screen.get_size())
-            for name in ("welcome", "P1", "P2")
+            name: _load(IMAGES / f"{name}.png", screen.get_size()) for name in ("P1", "P2")
         }
         self._bob, self._bob_step = 0.0, 0.5
         self.clouds = self._make_clouds()
@@ -108,11 +109,12 @@ class SpriteRenderer:
             screen.blit(self._bullet_images(b["w"], b["h"])[-b["dir"]], rect)
         self._draw_hud(snapshot)
 
-    def draw_title(self) -> None:
-        """The welcome screen, shown before a match starts."""
+    def draw_backdrop(self) -> float:
+        """Sky and clouds with nothing else, for the menu to draw on. Returns the
+        current bob offset so the menu moves with the same rhythm as the win screens."""
         self.screen.fill(SKY)
         self._draw_clouds()
-        self._draw_screen("welcome")
+        return self._advance_bob()
 
     def _draw_clouds(self) -> None:
         low, high = CLOUD_WRAP
@@ -124,12 +126,15 @@ class SpriteRenderer:
             rect = self.camera.to_screen(cloud["x"], cloud["y"], *image.get_size())
             self.screen.blit(image, rect)
 
-    def _draw_screen(self, name: str) -> None:
-        """A full-screen image that bobs up and down, as v1's screens did."""
+    def _advance_bob(self) -> float:
         self._bob += self._bob_step
         if abs(self._bob) >= SCREEN_BOB:
             self._bob_step = -self._bob_step
-        self.screen.blit(self.screens[name], (0, round(self._bob)))
+        return self._bob
+
+    def _draw_screen(self, name: str) -> None:
+        """A full-screen image that bobs up and down, as v1's screens did."""
+        self.screen.blit(self.screens[name], (0, round(self._advance_bob())))
 
     def _draw_tiles(self) -> None:
         size = self.level.tile_size
@@ -166,7 +171,7 @@ class SpriteRenderer:
         sprites = PLAYER_SPRITES.get(p["id"], "player")
         key = (sprites, p["action"])
         if key not in self.players:
-            folder = IMAGES / "entities" / sprites / p["action"]
+            folder = IMAGES / "entities" / sprites / ACTION_FOLDERS.get(p["action"], p["action"])
             self.players[key] = [_both_ways(f) for f in _load_frames(folder, size)]
         return self.players[key]
 

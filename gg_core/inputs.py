@@ -7,7 +7,8 @@ jump button goes from released to held), so clients only ever report key state.
 
 from dataclasses import asdict, dataclass
 
-_FIELDS = ("left", "right", "jump", "fire", "fast_fall")
+# New buttons go at the end: the position is the bit number in `to_bits`.
+_FIELDS = ("left", "right", "jump", "fire", "fast_fall", "dash")
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,6 +18,7 @@ class PlayerInput:
     jump: bool = False
     fire: bool = False
     fast_fall: bool = False
+    dash: bool = False
 
     @property
     def direction(self) -> int:
@@ -32,7 +34,7 @@ class PlayerInput:
         return cls(**{name: bool(data.get(name, False)) for name in _FIELDS})
 
     def to_bits(self) -> int:
-        """Compact form: bit 0 left, 1 right, 2 jump, 3 fire, 4 fast_fall."""
+        """Compact form: bit 0 left, 1 right, 2 jump, 3 fire, 4 fast_fall, 5 dash."""
         return sum(1 << i for i, name in enumerate(_FIELDS) if getattr(self, name))
 
     @classmethod

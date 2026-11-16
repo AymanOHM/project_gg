@@ -12,23 +12,35 @@ from gg_client.__main__ import LEVEL_PATH, main  # noqa: E402
 from gg_client.audio import Audio  # noqa: E402
 from gg_client.debug_renderer import SKY, DebugRenderer  # noqa: E402
 from gg_client.keyboard import KEYMAP, read_inputs  # noqa: E402
+from gg_client.menu import Menu, draw_menu  # noqa: E402
+from gg_client.settings import Settings  # noqa: E402
 from gg_client.sprite_renderer import SpriteRenderer  # noqa: E402
 from gg_core import Match, PlayerInput, World, load_level  # noqa: E402
 
 
 def test_main_loop_runs_frames_headless():
-    asyncio.run(main(max_frames=30))  # welcome screen
-    asyncio.run(main(max_frames=30, skip_title=True))
-    asyncio.run(main(max_frames=30, debug=True))
+    asyncio.run(main(max_frames=30, settings=Settings()))  # menu
+    asyncio.run(main(max_frames=30, skip_menu=True, settings=Settings()))
+    asyncio.run(main(max_frames=30, debug=True, settings=Settings()))
 
 
-def test_enter_starts_a_match_from_the_welcome_screen_and_q_quits():
+def press(*keys):
+    for key in keys:
+        pg.event.post(pg.event.Event(pg.KEYDOWN, key=key))
+
+
+def test_menu_keys_reach_the_menu_and_quit_ends_the_loop():
     pg.init()
-    pg.event.post(pg.event.Event(pg.KEYDOWN, key=pg.K_RETURN))
-    asyncio.run(main(max_frames=5))
+    press(pg.K_UP, pg.K_RETURN)  # up from PLAY wraps to QUIT
+    asyncio.run(main(max_frames=10_000_000, settings=Settings()))  # returns at once
+
+
+def test_volume_changed_in_the_menu_is_applied_and_not_saved_for_injected_settings(tmp_path):
     pg.init()
-    pg.event.post(pg.event.Event(pg.KEYDOWN, key=pg.K_q))
-    asyncio.run(main(max_frames=10_000_000))  # returns at once instead of running forever
+    settings = Settings()
+    press(pg.K_DOWN, pg.K_RETURN, pg.K_LEFT, pg.K_LEFT)  # OPTIONS, then music down twice
+    asyncio.run(main(max_frames=5, settings=settings))
+    assert settings.music_volume == 3
 
 
 def played_match(ticks=243):
@@ -51,6 +63,7 @@ def test_sprite_renderer_draws_players_tiles_and_bullets():
     renderer.load_level(level)
     snap = match.snapshot()
     assert snap["bullets"]
+    snap["players"][0]["action"] = "dash"  # drawn with the "slide" pictures
     for _ in range(300):  # let the camera settle
         renderer.draw(snap)
     for thing in [*snap["players"], *snap["bullets"]]:
@@ -100,10 +113,10 @@ def test_debug_renderer_draws_a_snapshot():
 
 def test_keyboard_maps_keys_to_player_inputs():
     pressed = {key: False for keys in KEYMAP.values() for group in keys.values() for key in group}
-    pressed[pg.K_a] = pressed[pg.K_SPACE] = pressed[pg.K_UP] = True
+    pressed[pg.K_a] = pressed[pg.K_SPACE] = pressed[pg.K_UP] = pressed[pg.K_PERIOD] = True
     inputs = read_inputs(pressed)
     assert inputs["p1"] == PlayerInput(left=True, fire=True)
-    assert inputs["p2"] == PlayerInput(jump=True)
+    assert inputs["p2"] == PlayerInput(jump=True, dash=True)
 
 
 def test_debug_renderer_draws_every_match_phase():
@@ -120,7 +133,7 @@ def test_debug_renderer_draws_every_match_phase():
     assert seen == {"countdown", "playing", "round_over", "match_over"}
 
 
-def test_title_and_win_screens_cover_the_view_and_clouds_drift():
+def test_menu_and_win_screens_are_drawn_and_clouds_drift():
     pg.init()
     pg.display.set_mode((1280, 720))
     screen = pg.Surface((1280, 720))
@@ -128,10 +141,10 @@ def test_title_and_win_screens_cover_the_view_and_clouds_drift():
     level = load_level(LEVEL_PATH)
     renderer.load_level(level)
 
-    renderer.draw_title()
+    draw_menu(screen, Menu(Settings()), renderer.draw_backdrop())
     title = screen.copy()
     before = [cloud["x"] for cloud in renderer.clouds]
-    renderer.draw_title()
+    renderer.draw_backdrop()
     assert all(cloud["x"] > x for cloud, x in zip(renderer.clouds, before, strict=True))
 
     match = Match([level], rounds_to_win=1, countdown_ticks=1, round_over_ticks=1)
@@ -162,3 +175,25 @@ def test_audio_plays_each_ticks_events_once():
     assert audio.play_events(snap) == []  # same tick drawn again
     assert audio.play_events({"tick": 6, "events": [{"type": "unknown"}]}) == []
     assert audio.play_events({"tick": 7, "events": [{"type": "jump", "player": "p1"}]}) == ["jump"]
+    assert audio.play_events({"tick": 8, "events": [{"type": "dash", "player": "p1"}]}) == ["dash"]
+
+
+def test_the_client_plays_every_level_in_rotation():
+    from gg_client.__main__ import LEVEL_ORDER, LEVELS_DIR
+
+    pg.init()
+    pg.display.set_mode((1280, 720))
+    levels = [load_level(LEVELS_DIR / f"{name}.json") for name in LEVEL_ORDER]
+    renderer = SpriteRenderer(pg.Surface((1280, 720)))
+    match = Match(levels, rounds_to_win=99, countdown_ticks=1, round_over_ticks=1)
+    seen = []
+    for tick in range(20_000):
+        name = match.snapshot()["match"]["level"]
+        if not seen or seen[-1] != name:
+            seen.append(name)
+            renderer.load_level(levels[LEVEL_ORDER.index(name)])
+            renderer.draw(match.snapshot())  # every tile image of the level exists
+        if len(seen) > len(LEVEL_ORDER):
+            break
+        match.step({"p1": PlayerInput(left=True, jump=tick % 30 == 0)})  # p1 wanders off the map
+    assert seen[: len(LEVEL_ORDER)] == list(LEVEL_ORDER)

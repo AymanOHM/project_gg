@@ -1,6 +1,6 @@
 # Project GG
 
-**Read `docs/ROADMAP.md` and `docs/HANDOFF.md` before doing anything.** The roadmap is the plan; the handoff says where the work stands and lists the exact next steps.
+**Read `docs/ROADMAP.md` and `docs/HANDOFF.md` before doing anything.** The roadmap is the plan; the handoff says where the work stands and lists the exact next steps. `docs/JOURNAL.md` explains why the code is the way it is.
 
 ## Goal
 
@@ -19,14 +19,16 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `game.py`, `scripts/`, `map.json` | The original v1 game. Frozen reference code: do not refactor or lint it. It is deleted once `gg_client` replaces it. |
 | `data/` | Art, audio, maps |
 | `gg_core/` | Headless rules: `World` (one round), `Match` (rounds, countdown, score), inputs, level loader, fixed-step clock, bots |
-| `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `Audio` (music and effects from snapshot events), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
-| `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted |
+| `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `Audio` (music and effects from snapshot events), `Menu` and `Settings` (menu, options, saved key bindings), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
+| `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted; `meadow`, `cliffs` and `towers` are converted tutorial maps |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
 | `web/` | Browser build: `main.py` (pygbag entry point) and `build.sh`. Output goes to `build/web-app/` (ignored) |
+| `desktop/` | Desktop build: `main.py` (PyInstaller entry point) and `build.sh`. Output goes to `dist/` (ignored) |
 | `tools/` | `record_v1_traces.py` (re-record the traces), `convert_v1_map.py` |
 | `spikes/` | Throwaway experiments. Do not build on them |
 | `docs/ROADMAP.md` | Phases, tasks, gates, backlog. Source of truth. |
 | `docs/HANDOFF.md` | Current status and ordered next steps |
+| `docs/JOURNAL.md` | Learning journal: what was done, why, how it works. One entry per PR or decision |
 | `docs/adr/` | Architecture decision records, one page each |
 | `docs/spikes/` | Spike write-ups |
 | `docs/issues/` | Ready-to-paste GitHub issue bodies |
@@ -43,7 +45,7 @@ uv run python -m gg_client   # the rewrite: local best of three (Esc quits; --de
 ./web/build.sh --serve       # browser build on http://localhost:8000 (plain static servers do not work locally)
 ```
 
-CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR. Keep it green. `deploy-web.yml` publishes the web build to GitHub Pages on a version tag or when run by hand.
+CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR. Keep it green. `deploy-web.yml` publishes the web build to GitHub Pages on a version tag or when run by hand. `release-desktop.yml` builds macOS and Windows packages and attaches them to the release on a version tag.
 
 ## Rules for `gg_core`
 
@@ -59,7 +61,10 @@ CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR.
 - Commits are authored and committed as Ayman (`git config user.name` → `AymanOHM`). If the identity is different, stop and ask.
 - **No AI attribution anywhere**: no `Co-Authored-By` trailer, no "Generated with" line, no session links, in commits, PR titles, PR bodies or release notes. After committing, check with `git log -1 --format=full`.
 - Short-lived branches off `main`: `chore/…`, `feat/…`, `refactor/…`, `spike/…`, `docs/…`. Conventional commits, small steps.
-- Push branches and open PRs. **Never merge, never push to `main`, never force-push a shared branch, never rewrite history.**
+- Push branches and open PRs against the current integration branch (`phase-2` now; see `docs/HANDOFF.md`). You may merge a PR into the integration branch once CI is green, with a merge commit (`gh pr merge --merge`), not a squash.
+- **`main` only moves at major milestones** (a phase gate, a first deployment), by merging the integration branch into it through a PR. If you are not sure something is a milestone, it is not: ask Ayman.
+- **Never push directly to `main`, never force-push, never rewrite history.**
+- PR #38 (removing the v1 game) stays open and unmerged until Ayman says so.
 - Every PR description has: what changed, why, how to test, risks, roadmap task IDs.
 - Do not @-mention people in PRs, issues or releases unless Ayman asks.
 
@@ -69,4 +74,5 @@ CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR.
 - Reversible implementation details: decide, and note them in the PR description.
 - Open decisions that are not yours to make: matchmaker language (Node vs Python) and hosting direction (see `docs/HANDOFF.md`).
 - Update `docs/HANDOFF.md` after every PR or decision.
+- **This project is a learning exercise for Ayman.** In the same PR as any change, add an entry to `docs/JOURNAL.md` with the headings used there (problem, what we did, why this way, how it works, where to look). Explain the reasoning and the mechanism, including what went wrong, in plain language. Do not just list what changed; the PR description does that.
 - Quality bar: working code with tests, ruff-clean, behaviour preserved. No speculative abstraction.

@@ -12,7 +12,7 @@ The rules must run in three places (desktop client, browser client, game server)
 
 **1. One tick is one call.** `World.step(inputs)` advances the game by exactly 1/60 s. The world never reads a clock. Whoever owns the loop decides when to call it: the client uses `FixedStep` (an accumulator), the server uses a 60 Hz timer.
 
-**2. Inputs are held buttons, not events.** `inputs` maps player id to `PlayerInput(left, right, jump, fire, fast_fall)`: the buttons held during that tick. The world derives events itself; a jump happens on the tick `jump` goes from released to held. A missing player holds nothing. On the wire an input is the same five booleans as a JSON object (`to_dict`), or five bits (`to_bits`).
+**2. Inputs are held buttons, not events.** `inputs` maps player id to `PlayerInput(left, right, jump, fire, fast_fall, dash)`: the buttons held during that tick. The world derives events itself; a jump or a dash happens on the tick its button goes from released to held. A missing player holds nothing. On the wire an input is the same six booleans as a JSON object (`to_dict`), or six bits (`to_bits`). A button missing from the JSON object counts as released, and new buttons take the next free bit, so an older sender stays valid.
 
 **3. The snapshot is the only view of the world.** `World.snapshot()` returns plain dicts, lists, strings and numbers:
 
@@ -25,9 +25,9 @@ The rules must run in three places (desktop client, browser client, game server)
 }
 ```
 
-The snapshot also has `"events"`: what happened during that tick, as a list of `{"type": "jump" | "shot" | "hit", "player": id}`. They exist for sound and effects; a shot or a hit can begin and end inside one tick and never show up in `bullets`. A server that sends fewer snapshots than ticks must collect the events of the ticks in between.
+The snapshot also has `"events"`: what happened during that tick, as a list of `{"type": "jump" | "shot" | "hit" | "dash", "player": id}`. They exist for sound and effects; a shot or a hit can begin and end inside one tick and never show up in `bullets`. A server that sends fewer snapshots than ticks must collect the events of the ticks in between.
 
-`phase` is `playing` or `round_over`; `winner` is a player id, or `null` for a draw or an unfinished round. `action` is `idle`, `run`, `jump` or `wall_slide`, and `action_ticks` counts ticks since it changed, so a renderer picks the animation frame as `action_ticks // frame_duration % frame_count`. `v` goes up on any incompatible change.
+`phase` is `playing` or `round_over`; `winner` is a player id, or `null` for a draw or an unfinished round. `action` is `idle`, `run`, `jump`, `wall_slide` or `dash`, and `action_ticks` counts ticks since it changed, so a renderer picks the animation frame as `action_ticks // frame_duration % frame_count`. `v` goes up on any incompatible change.
 
 **4. The renderer sees snapshots, never the world.** `Renderer.load_level(level)` once per round, then `Renderer.draw(snapshot, alpha)` once per frame (`gg_client/renderer.py`). Local play and online play feed it the same dicts, so the renderer can be built and tested against recorded snapshots with no rules code running.
 
@@ -66,6 +66,13 @@ The snapshot also has `"events"`: what happened during that tick, as a list of `
 
 - A bullet may hit the player who fired it, as in v1. It almost never happens.
 - Round end keeps v1's order: damage dealt by a player later in the order ends the round one tick later.
+
+## Amended on 2026-11-16: dash (roadmap task 2.5)
+
+- `PlayerInput` gained `dash` (bit 5), the `dash` action and the `dash` event. `v` stays 1: nothing was renamed or removed, and no client exists outside this repo. A consumer must ignore event types it does not know; a renderer needs pictures for every action.
+- The rule: pressing dash moves the player `DASH_SPEED` (15 px) per tick for `DASH_TICKS` (8) in the held direction, or the facing direction if none is held. In the air the player keeps its height for the duration; on the ground it stays on the ground. A wall or a jump ends it. The next dash may start `DASH_COOLDOWN_TICKS` (45) after the last one started.
+- A dash gives no protection: bullets hit a dashing player as usual.
+- With dash never pressed, `World` behaves exactly as before; the v1 traces are unchanged.
 
 ## Open for the interface session
 

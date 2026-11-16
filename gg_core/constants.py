@@ -15,6 +15,11 @@ RUN_SPEED = 6
 JUMP_SPEED = 5
 AIR_CONTROL_DIVISOR = 10  # in the air, each tick adds direction * RUN_SPEED / 10
 
+# Dash (roadmap task 2.5; not in v1). A short burst in a straight line.
+DASH_SPEED = 15  # must stay below the tile size, or a dash could pass through a wall
+DASH_TICKS = 8  # 8 ticks at 15 px is 120 px, a little under three tiles
+DASH_COOLDOWN_TICKS = 45  # from the start of one dash to the start of the next
+
 # Players
 PLAYER_WIDTH = 35
 PLAYER_HEIGHT = 55

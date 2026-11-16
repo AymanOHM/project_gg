@@ -16,6 +16,7 @@ EVENT_SOUNDS = {
     "jump": ("jump.ogg", 0.7),
     "shot": ("shoot.ogg", 0.4),
     "hit": ("hit.ogg", 0.8),
+    "dash": ("dash.ogg", 0.3),
 }
 MUSIC_VOLUME = 0.5
 AMBIENCE_VOLUME = 0.2
@@ -37,6 +38,15 @@ class Audio:
         except (pg.error, FileNotFoundError):
             self.enabled = False
         self._last_tick = None
+
+    def set_volumes(self, music: float, effects: float) -> None:
+        """Scale music and effects, each 0.0 to 1.0, on top of the built-in balance."""
+        if not self.enabled:
+            return
+        pg.mixer.music.set_volume(MUSIC_VOLUME * music)
+        self.ambience.set_volume(AMBIENCE_VOLUME * music)
+        for event, (_file, volume) in EVENT_SOUNDS.items():
+            self.sounds[event].set_volume(volume * effects)
 
     def start_music(self) -> None:
         if not self.enabled:

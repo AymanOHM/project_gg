@@ -86,3 +86,23 @@ def test_load_level_reports_bad_json(tmp_path):
     path.write_text("{not json")
     with pytest.raises(LevelError, match="not valid JSON"):
         load_level(path)
+
+
+@pytest.mark.parametrize("name", ["arena", "meadow", "cliffs", "towers"])
+def test_shipped_levels_load_and_both_players_land_on_solid_ground(name):
+    from gg_core import PHASE_PLAYING, World
+
+    level = load_level(ROOT / "data" / "levels" / f"{name}.json")
+    assert level.name == name
+    world = World(level)
+    for _ in range(200):
+        world.step({})
+    assert world.phase == PHASE_PLAYING
+    for player in world.players.values():
+        assert player.hit_down, f"{player.id} is not standing in {name}"
+        spawn_x = level.spawns[player.id][0]
+        assert abs(player.x - spawn_x) < level.tile_size, (
+            f"{player.id} was pushed sideways in {name}"
+        )
+    xs = [p.x for p in world.players.values()]
+    assert abs(xs[0] - xs[1]) >= 10 * level.tile_size
