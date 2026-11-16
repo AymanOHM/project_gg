@@ -17,7 +17,8 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | [#28](https://github.com/AymanOHM/project_gg/pull/28) | `feat/core-interfaces` | 1.1, 1.2, 1.3, 1.9 | Based on #26. Read ADR-002 first |
 | [#29](https://github.com/AymanOHM/project_gg/pull/29) | `feat/world-step` | 1.4, 1.5, 1.7, 1.11 | Based on #28. The core of the session |
 | [#30](https://github.com/AymanOHM/project_gg/pull/30) | `feat/debug-client` | — | Based on #29. Playable client |
-| #31 | `docs/handoff-and-backlog` | — | Based on #30. This file, proposals, issue bodies |
+| [#31](https://github.com/AymanOHM/project_gg/pull/31) | `docs/handoff-and-backlog` | — | Based on #30. This file, proposals, issue bodies |
+| next | `docs/asset-licences` | 0.8 (part) | Based on #31. `CREDITS.md` with what could be verified |
 
 #27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
 
@@ -98,7 +99,7 @@ Not taken: 0.2 (board), 0.6 (branch protection), 0.7 (dev container), 1.6 (rende
 For the next model. Do them in order; each is one branch and one PR. Do not start a step whose precondition is not met; go to the next one.
 
 1. **Nothing can merge until Ayman reviews.** If PRs #26–#31 are still open, do not rebase or force-push them. Fix review comments with new commits on the same branch.
-2. **0.8 licence check.** Follow `docs/issues/0.8-asset-licences.md`. Branch `docs/asset-licences` off the newest open branch (or `main` once merged). Needs web access.
+2. **0.8 licence check: partly done** (branch `docs/asset-licences`). The health bar pack is CC BY 4.0. The tutorial resources have no licence on their download page; only Ayman can settle this, by checking the tutorial video's description or asking the author. Do not repeat the web search. The unused-asset deletion in `docs/issues/0.8-asset-licences.md` is still to do.
 3. **1.8 readable rule tests.** Follow `docs/issues/1.8-readable-rule-tests.md`. Precondition: #29 merged or branch from `feat/world-step`. Do not change `gg_core`; if a test disagrees with the code, the test is wrong.
 4. **2.10 audio to OGG.** Follow `docs/issues/2.10-audio-to-ogg.md`. Precondition: Ayman approved proposal B7.
 5. **2.7 static-hosting check.** Follow `docs/issues/2.7-static-hosting-check.md`. Precondition: #27 merged. Publishing to GitHub Pages needs Ayman's explicit go-ahead.
