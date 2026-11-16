@@ -21,6 +21,12 @@ Press Enter to start. A match is best of three. Esc or Q quits.
 
 The original 2024 version, written with PyOpenGL for a computer graphics course, is preserved as the [`v1` release](https://github.com/AymanOHM/project_gg/releases/tag/v1).
 
+## Play in a browser
+
+https://aymanohm.github.io/project_gg/play/ — two players on one keyboard. Click the page once, then press Enter. The first load downloads about 11 MB.
+
+To build it yourself: `./web/build.sh --serve`, then open http://localhost:8000.
+
 ## Development
 
 ```bash

@@ -24,7 +24,8 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | [#35](https://github.com/AymanOHM/project_gg/pull/35) | `docs/adr-001-and-roadmap` | 0.1 | Based on #34. ADR-001 accepted; proposals B1–B14 applied to the roadmap |
 | [#36](https://github.com/AymanOHM/project_gg/pull/36) | `feat/sprite-renderer` | 1.6a | Based on #35. `SpriteRenderer`; view a frame by running the client |
 | [#37](https://github.com/AymanOHM/project_gg/pull/37) | `feat/clouds-and-screens` | 1.6b | Based on #36. Clouds, welcome screen, win screens |
-| #38 | `chore/remove-v1-code` | 1.12 | Based on #37. Deletes `game.py`, `scripts/`, `map.json`, PyOpenGL. **Play v1 and the rewrite side by side before merging this one** (check out `feat/clouds-and-screens`) |
+| [#38](https://github.com/AymanOHM/project_gg/pull/38) | `chore/remove-v1-code` | 1.12 | Based on #37. Deletes `game.py`, `scripts/`, `map.json`, PyOpenGL. **Play v1 and the rewrite side by side before merging this one** (check out `feat/clouds-and-screens`) |
+| #39 | `feat/web-build` | 2.6, 2.7 | Based on #38. `web/build.sh`, CI web build, deploy workflow. Live at https://aymanohm.github.io/project_gg/play/ |
 
 #27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
 

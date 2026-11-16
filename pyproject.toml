@@ -15,6 +15,9 @@ dev = [
     "ruff>=0.8",
     "pre-commit>=4",
 ]
+web = [
+    "pygbag>=0.9.3",
+]
 [tool.uv]
 package = false
 default-groups = ["dev"]

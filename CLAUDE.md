@@ -21,6 +21,7 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 | `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
 | `data/levels/` | Levels in the `gg_core` format. `arena.json` is the original game's map |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
+| `web/` | Browser build: `main.py` (pygbag entry point) and `build.sh`. Output goes to `build/web-app/` (ignored) |
 | `tools/` | `convert_v1_map.py` (v1 map format to level format) |
 | `spikes/` | Throwaway experiments. Do not build on them |
 | `docs/ROADMAP.md` | Phases, tasks, gates, backlog. Source of truth. |
@@ -37,9 +38,10 @@ uv run pytest -q             # tests
 uv run ruff check .          # lint
 uv run ruff format .         # format
 uv run python -m gg_client   # the rewrite: local best of three (Esc quits; --debug for collision boxes)
+./web/build.sh --serve       # browser build on http://localhost:8000 (plain static servers do not work locally)
 ```
 
-CI (`.github/workflows/ci.yml`) runs ruff and pytest on every PR. Keep it green.
+CI (`.github/workflows/ci.yml`) runs ruff, pytest and the web build on every PR. Keep it green. `deploy-web.yml` publishes the web build to GitHub Pages on a version tag.
 
 ## Rules for `gg_core`
 
