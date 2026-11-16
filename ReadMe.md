@@ -25,7 +25,7 @@ That is the original game. The rewritten rules can be played with a plain rectan
 uv run python -m gg_client
 ```
 
-Player 1: A/D, W to jump, S to fast fall, Space to fire. Player 2: arrow keys, Right Shift or `/` to fire. Enter starts a new round, Esc quits.
+Player 1: A/D, W to jump, S to fast fall, Space to fire. Player 2: arrow keys, Right Shift or `/` to fire. A match is best of three; Enter starts a new one, Esc quits.
 
 The original Windows-only version, with its vendored libraries, is preserved as the [`v1` release](https://github.com/AymanOHM/project_gg/releases/tag/v1).
 

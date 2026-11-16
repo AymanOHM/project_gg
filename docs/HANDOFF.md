@@ -19,7 +19,8 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | [#30](https://github.com/AymanOHM/project_gg/pull/30) | `feat/debug-client` | — | Based on #29. Playable client |
 | [#31](https://github.com/AymanOHM/project_gg/pull/31) | `docs/handoff-and-backlog` | — | Based on #30. This file, proposals, issue bodies |
 | [#32](https://github.com/AymanOHM/project_gg/pull/32) | `docs/asset-licences` | 0.8 (part) | Based on #31. `CREDITS.md` with what could be verified |
-| #33 | `test/readable-rules` | 1.8 | Based on #32. Tests only; `gg_core` unchanged |
+| [#33](https://github.com/AymanOHM/project_gg/pull/33) | `test/readable-rules` | 1.8 | Based on #32. Tests only; `gg_core` unchanged |
+| #34 | `feat/match-rounds` | 2.1 (rules part) | Based on #33. `Match`: countdown, best of three, score, level rotation |
 
 #27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
 
@@ -36,6 +37,8 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | 1.1, 1.2, 1.3, 1.9 | `gg_core` package, `FixedStep`, `PlayerInput`, level format and loader, `Renderer` protocol, ADR-002 (Proposed) |
 | 1.4, 1.5, 1.7 | `World.step`, `World.snapshot`, bullet fix, `p1`/`p2` |
 | 1.11 | `RandomBot` |
+| 1.8 | `tests/test_rules.py` |
+| 2.1 (rules part), 2.4 (rotation logic) | `gg_core.Match`; the debug client plays best of three. Menu and "back to menu" are client work, still open |
 | — | v1 trace recorder and parity tests; debug client |
 
 ## Decisions
@@ -78,6 +81,7 @@ Nothing built so far depends on the choice.
 | ruff skips `game.py` and `scripts/` | Frozen reference code | `pyproject.toml` |
 | `p1` = WASD player (left spawn), `p2` = numpad player | The README says so; v1's code and win screens disagreed | Rename in `gg_core` and re-record |
 | Fire cooldown is 15 ticks | 250 ms at 60 Hz | `gg_core/constants.py` and re-record |
+| Match flow: 3 s countdown with inputs ignored, 2 s pause after a round, first to 2, draws score for nobody | No v1 behaviour to copy; these are defaults on `Match(...)` | Constructor arguments |
 | A held jump key jumps once | v1 re-jumped on OS key repeat, which differs per machine | `World.step` |
 | v1's quirks are kept (self-hit possible, one-tick asymmetry at round end, gun one tick behind) | Bit-for-bit parity; listed in proposal B13 | `gg_core/world.py` and re-record |
 | `map.json`'s `offgrid` tiles are dropped | v1 drew them far off-screen | `tools/convert_v1_map.py` |

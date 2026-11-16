@@ -2,7 +2,7 @@
 
 p1: A/D move, W jump, S fast fall, Space fire.
 p2: arrows move/jump/fast fall, Right Shift or / fire (numpad 4/6/8/5/0 also work).
-Enter starts a new round once one is over. Esc quits.
+A match is best of three. Enter starts a new match once one is over. Esc quits.
 
 The loop is async with one `await` per frame, which is what pygbag needs to run
 the same file in a browser.
@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pygame as pg
 
-from gg_core import PHASE_ROUND_OVER, FixedStep, World, load_level
+from gg_core import MATCH_OVER, FixedStep, Match, load_level
 
 from .debug_renderer import DebugRenderer
 from .keyboard import read_inputs
@@ -31,7 +31,7 @@ async def main(max_frames: int | None = None) -> None:
     level = load_level(LEVEL_PATH)
     renderer = DebugRenderer(screen)
     renderer.load_level(level)
-    world = World(level)
+    match = Match([level])
     fixed = FixedStep()
 
     frames = 0
@@ -40,18 +40,14 @@ async def main(max_frames: int | None = None) -> None:
             if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
                 pg.quit()
                 return
-            if (
-                event.type == pg.KEYDOWN
-                and event.key == pg.K_RETURN
-                and world.phase == PHASE_ROUND_OVER
-            ):
-                world = World(level)
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and match.phase == MATCH_OVER:
+                match = Match([level])
 
         inputs = read_inputs(pg.key.get_pressed())
         for _ in range(fixed.advance(frame_timer.tick(60) / 1000)):
-            world.step(inputs)
+            match.step(inputs)
 
-        renderer.draw(world.snapshot(), fixed.alpha)
+        renderer.draw(match.snapshot(), fixed.alpha)
         pg.display.flip()
         frames += 1
         await asyncio.sleep(0)

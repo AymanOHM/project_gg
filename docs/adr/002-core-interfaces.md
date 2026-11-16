@@ -2,7 +2,7 @@
 
 - **Status:** Proposed — open for revision at the interface session
 - **Date:** 2026-11-16
-- **Covers:** roadmap tasks 1.2, 1.3, 1.4, 1.5, 1.9 and the contract for 1.6
+- **Covers:** roadmap tasks 1.2, 1.3, 1.4, 1.5, 1.9, 2.1 (rules part) and the contract for 1.6
 
 ## Context
 
@@ -34,6 +34,15 @@ The rules must run in three places (desktop client, browser client, game server)
 **6. Levels are a versioned JSON file** with tile size, spawn points and kill height inside it (`gg_core/level.py`), validated on load.
 
 **7. The world is deterministic.** No wall-clock time, no unseeded randomness. The same level and inputs always give the same snapshots, which is what the v1 parity tests, replays and later client-side prediction rely on.
+
+**8. A match wraps the world.** `Match(levels, rounds_to_win=2)` has the same `step(inputs)` and `snapshot()` and adds the flow around rounds: a 3 s countdown during which inputs are ignored, a 2 s pause after each round, the score, and level rotation. Its snapshot is the world's snapshot plus one object:
+
+```json
+"match": {"phase": "countdown", "tick": 0, "round": 1, "level": "arena", "scores": {"p1": 0, "p2": 0},
+          "rounds_to_win": 2, "ticks_left": 180, "winner": null}
+```
+
+`match.phase` is `countdown`, `playing`, `round_over` or `match_over`. The top-level `phase` and `winner` still describe the current round. A drawn round scores for nobody. `World` is unchanged, so the v1 parity tests are unaffected.
 
 ## Alternatives considered
 

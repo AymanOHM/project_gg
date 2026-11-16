@@ -61,8 +61,17 @@ class DebugRenderer:
 
         lines = [f"tick {snapshot['tick']}"]
         lines += [f"{p['id']}  {p['action']:<10} hp {p['health']}" for p in players]
-        if snapshot["phase"] == "round_over":
-            result = f"{snapshot['winner']} wins" if snapshot["winner"] else "draw"
-            lines.append(f"Round over: {result}. Enter = new round, Esc = quit")
+        match = snapshot.get("match")  # absent when drawing a bare World
+        if match:
+            score = "  ".join(f"{pid} {won}" for pid, won in match["scores"].items())
+            lines.append(f"round {match['round']}   {score}   first to {match['rounds_to_win']}")
+            if match["phase"] == "countdown":
+                lines.append(f"Starts in {match['ticks_left'] // 60 + 1}")
+            elif match["phase"] == "round_over":
+                lines.append(f"Round to {snapshot['winner'] or 'nobody (draw)'}")
+            elif match["phase"] == "match_over":
+                lines.append(f"{match['winner']} wins the match. Enter = new match, Esc = quit")
+        elif snapshot["phase"] == "round_over":
+            lines.append(f"Round over: {snapshot['winner'] or 'draw'}")
         for i, line in enumerate(lines):
             screen.blit(self.font.render(line, True, (0, 0, 0)), (10, 10 + 24 * i))
