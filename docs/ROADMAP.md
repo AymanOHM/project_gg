@@ -8,7 +8,7 @@
 
 The plan in one line: pull the game rules out into a headless core, give it a pygame-ce client (desktop + web), and run that same core as an authoritative WebSocket game server on Kubernetes with Agones. About 7 phases over roughly 15 weeks, in 2-week sprints.
 
-**Decision to lock in Sprint 0 (ADR-001):** this direction. Everything after Phase 1 depends on it.
+**Decision (ADR-001, accepted 2026-11-17):** this direction, with online play from the browser as well as the desktop. Everything after Phase 1 depends on it.
 
 **Strongest case against it:**
 
@@ -25,7 +25,7 @@ Sprint 0 runs 2026-11-15 to 2026-11-19. Its goal is Phase 0's gate: the repo run
 | When | Meeting | Length | What comes out of it |
 |---|---|---|---|
 | Start of Sprint 0 | **Kickoff + Sprint 0 planning:** walk through this doc; settle Node vs Python for the matchmaker; agree the area split (rules + physics vs renderer + assets); each of you states real hours per week; agree the working agreement and meeting days | 90 min | ADR-001 accepted, board loaded with Phase 0 issues, capacity in hours |
-| End of Sprint 0 | **Interface design session:** define `World.step(inputs)`, the snapshot shape and the `Renderer` interface before anyone touches the refactor | 60 min | ADR-002 + stub interfaces merged, so you can work in parallel without conflicts |
+| End of Sprint 0 | **Interface design session:** review ADR-002 (`World.step(inputs)`, the snapshot shape, the `Renderer` interface) and its open questions, including whether a bullet may hit its own shooter and whether round end should be symmetric between players | 60 min | ADR-002 accepted or revised |
 | End of Sprint 0 | **Review + retro, then Sprint 1 planning** | 30 + 15 + 45 min | Gate demoed; one thing to change; Sprint 1 issues picked to fit your capacity |
 | Every working day | **Async check-in** in your chat: done / next / blocked, 3 lines | 2 min | Blockers surface the same day |
 | Mid-sprint, from Sprint 1 | **Backlog refinement:** size and split the next sprint's issues | 30 min | Next planning takes 30 min, not 2 hours |
@@ -41,6 +41,10 @@ From Sprint 1 on, every sprint repeats the same rhythm: planning on day 1, refin
 - [ ] Friend: create the GitHub Projects board and load the Phase 0 issues — task 0.2
 - [ ] Split the rest of Phase 0 (0.3–0.7) between you at the kickoff
 - [ ] Both: book the interface design session and the end-of-sprint review
+
+### Progress (2026-11-17)
+
+In review, not yet merged (PRs #26–#34): 0.3, 0.4, 0.5, 0.8 (partly), 1.1–1.5, 1.7–1.11, and the rules half of 2.1. ADR-001 is accepted; ADR-002 is proposed. `docs/HANDOFF.md` has the details and the merge order.
 
 ## Repo audit
 
@@ -91,7 +95,6 @@ Sizes: **S** ≤ 1 day, **M** 2–3 days, **L** about a week. Work is split equa
 | 0.4 | Pin Python 3.12; `pyproject.toml` with uv; real dependencies instead of vendored ones | Ayman | S |
 | 0.5 | ruff + pre-commit; GitHub Actions running lint + pytest on every PR | Friend | M |
 | 0.6 | Branch protection: PR, 1 review and green CI to merge | Friend | S |
-| 0.7 | Dockerfile / dev container for the toolchain | Friend | M |
 | 0.8 | `LICENSE` + `CREDITS.md`; verify the art and audio licences before any public web deploy | Ayman | S |
 
 ### Phase 1 — Engine refactor (Sprints 1–2, weeks 2–4)
@@ -105,12 +108,14 @@ Sizes: **S** ≤ 1 day, **M** 2–3 days, **L** about a week. Work is split equa
 | 1.3 | Input as commands (`left, right, jump, fire, fast_fall`) instead of GLUT key callbacks | Ayman | M |
 | 1.4 | Move entities, collision, bullets and health into `World.step(inputs)`; no drawing in logic | Ayman | L |
 | 1.5 | `World.snapshot()` → plain dict (needed for netcode) | Ayman | S |
-| 1.6 | pygame-ce renderer: sprite and animation cache, camera, tilemap, clouds, HUD | Friend | L |
+| 1.6a | pygame-ce sprite renderer: sprite and animation cache, tilemap, players, bullets, camera. Built on `World.snapshot()` dicts and the `Renderer` protocol, inside the existing async loop | Ayman | M |
+| 1.6b | Clouds, HUD, welcome and win screens | Ayman | M |
 | 1.7 | Fix the bullet-removal bug; rename `player`/`enemy` to `p1`/`p2` | Ayman | S |
-| 1.8 | pytest: jump, wall jump, collision, bullet hit, round end | Friend | M |
+| 1.8 | pytest: readable rule tests (jump, wall jump, collision, bullet hit, round end) on a small test level; v1 parity is covered by recorded traces | Friend | S |
 | 1.9 | One map format + loader with validation | Ayman | S |
 | 1.10 | Spike: one map rendering in a browser via pygbag (de-risks Phase 2) | Friend | S |
 | 1.11 | Headless bot that generates inputs (reused in Phase 5 for load tests) | Friend | S |
+| 1.12 | Delete `game.py`, `scripts/`, `map.json` and the `legacy` dependency group once 1.6a is merged; fix the README controls table to `p1`/`p2` | Ayman | S |
 
 ### Phase 2 — Game polish (Sprint 3, weeks 5–6, timeboxed)
 
@@ -118,13 +123,14 @@ Sizes: **S** ≤ 1 day, **M** 2–3 days, **L** about a week. Work is split equa
 
 | ID | Task | Owner | Size |
 |---|---|---|---|
+| 2.6 | Async game loop + pygbag build | Friend | M |
+| 2.7 | CI: build the web bundle, deploy to GitHub Pages on tag. First: prove the build runs on a static host and decide between the pygbag CDN and a self-hosted runtime | Friend | M |
+| 2.10 | Convert audio to OGG and trim it (18 MB of WAV today; pygbag needs OGG) | Friend | S |
 | 2.1 | Round loop: countdown, best-of-3, restart, back to menu | Ayman | M |
 | 2.2 | Menu + options: keybinds, volume, fullscreen | Ayman | M |
 | 2.3 | Wire up the SFX and music already in `data/` | Friend | S |
-| 2.4 | Map rotation across the 3 maps in `data/maps` | Ayman | S |
+| 2.4 | Convert the 3 maps in `data/maps` to the level format (they are Y-down, 16 px, with no spawn points) and rotate across them | Ayman | M |
 | 2.5 | One new mechanic from the README roadmap: dash | Ayman | M |
-| 2.6 | Async game loop + pygbag build | Friend | M |
-| 2.7 | CI: build the web bundle, deploy to GitHub Pages on tag | Friend | M |
 | 2.8 | CI: PyInstaller desktop builds for Windows and macOS as release assets | Friend | M |
 | 2.9 | Playtest with ~5 people; fix the top 3 complaints | Both | S |
 
@@ -136,7 +142,7 @@ Cut line: anything not listed here goes to the icebox, however small it looks.
 
 | ID | Task | Owner | Size |
 |---|---|---|---|
-| 3.1 | Protocol v1: versioned JSON over WebSocket (`hello`, `input`, `snapshot`, `match_end`) | Both | S |
+| 3.1 | Protocol v1: versioned JSON over WebSocket (`hello`, `input`, `snapshot`, `match_end`), written as JSON Schema files in `docs/protocol/`, starting from the shapes in ADR-002 | Both | M |
 | 3.2 | `gg_server`: asyncio + websockets, runs `World.step` at 60 Hz, sends snapshots at 20–30 Hz | Ayman | L |
 | 3.3 | Client network mode: send inputs, render snapshots with interpolation | Ayman | L |
 | 3.4 | Rooms: 2 players, join code, timeouts, disconnect handling | Ayman | M |
@@ -144,6 +150,7 @@ Cut line: anything not listed here goes to the icebox, however small it looks.
 | 3.6 | Multi-stage, non-root, slim Dockerfiles for server and matchmaker | Friend | M |
 | 3.7 | docker-compose: matchmaker, Redis, 2 game servers, Caddy for TLS | Friend | M |
 | 3.8 | Measure input delay from Cairo to an EU VPS | Both | S |
+| 3.9 | Client transport interface with two implementations: `websockets` on desktop, JavaScript `WebSocket` in the browser (the `websockets` library does not run under pygbag) | Ayman | M |
 
 ### Phase 4 — Kubernetes platform (Sprints 6–7, weeks 10–12)
 
@@ -207,6 +214,8 @@ Cut line: anything not listed here goes to the icebox, however small it looks.
 - Level editor in the browser (replacing `scripts/editor.py`)
 - A modern OpenGL renderer (moderngl, VBOs, shaders) behind the same renderer interface, if you want the graphics learning back
 - WebRTC/UDP transport; multi-region servers
+- Dockerfile / dev container for the toolchain (was 0.7; `uv sync` covers it for now)
+- Full world state export and restore (needed by prediction and reconnects; the snapshot leaves internal state out)
 
 ### Risks
 
@@ -214,7 +223,11 @@ Cut line: anything not listed here goes to the icebox, however small it looks.
 |---|---|---|
 | Game work eats the DevOps time | High | Phase 2 is timeboxed with a hard cut line |
 | Full-time training leaves less time than planned | High | Re-plan at the end of Sprint 3 using real velocity; cut Phase 6 scope before cutting gates |
-| pygbag can't handle part of the client | Medium | Spike 1.10 in week 3; fallback = desktop client only + a thin browser client later |
+| pygbag can't handle part of the client | Low to medium | Spike 1.10 passed in Chrome (rendering, input, WebSocket). Audio, Safari, Firefox and mobile are untested; fallback = desktop client only |
+| The web build depends on a third-party CDN for its runtime | Medium | Decide in 2.7: keep the pygbag CDN or self-host about 22 MB |
+| A browser cannot reach an Agones game server (HTTPS pages need `wss://`) | High until designed | Task 4.9 |
+| Behaviour drifts from v1 during the port | Low | Tick-by-tick parity tests against traces recorded from v1 |
+| Asset licences block a public deploy | Unknown | Task 0.8; the tutorial resources state no licence |
 | Online play feels laggy | Medium | Measure in 3.8; prediction is in the icebox |
 | Cloud bill | Medium | Do 90% of the work on a local cluster; billing alerts; `terraform destroy` after each session |
 | Agones and Kubernetes versions drift | Low | Pin both; check the Agones compatibility table before upgrading |
