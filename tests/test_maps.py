@@ -1,4 +1,4 @@
-"""Smoke test: every shipped map file parses and has the expected top-level shape."""
+"""Smoke test: the unconverted v1-format maps in data/maps still parse (roadmap task 2.4)."""
 
 import json
 from pathlib import Path
@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-MAP_FILES = [ROOT / "map.json", *sorted((ROOT / "data" / "maps").glob("*.json"))]
+MAP_FILES = sorted((ROOT / "data" / "maps").glob("*.json"))
 
 
 @pytest.mark.parametrize("path", MAP_FILES, ids=lambda p: p.name)

@@ -4,7 +4,7 @@
 
 ## Goal
 
-Turn a 2024 PyOpenGL course game (a 2D two-player platform shooter) into a DevOps portfolio project:
+Turn a 2024 PyOpenGL course game (a 2D two-player platform shooter, preserved at tag `v1`) into a DevOps portfolio project:
 
 - `gg_core`: headless rules package. Pure Python, standard library only.
 - `gg_client`: pygame-ce client for desktop and, through pygbag, the browser.
@@ -16,13 +16,12 @@ The server is authoritative: clients send inputs only. Interfaces between compon
 
 | Path | What it is |
 |---|---|
-| `game.py`, `scripts/`, `map.json` | The original v1 game. Frozen reference code: do not refactor or lint it. It is deleted once `gg_client` replaces it. |
 | `data/` | Art, audio, maps |
 | `gg_core/` | Headless rules: `World` (one round), `Match` (rounds, countdown, score), inputs, level loader, fixed-step clock, bots |
 | `gg_client/` | `Renderer` protocol, `SpriteRenderer` (the game's renderer), `DebugRenderer` (collision boxes, `--debug`), camera, keyboard map, `python -m gg_client` |
-| `data/levels/` | Levels in the `gg_core` format. `arena.json` is v1's `map.json` converted |
+| `data/levels/` | Levels in the `gg_core` format. `arena.json` is the original game's map |
 | `tests/` | pytest. `tests/golden/v1_traces.json.gz` holds traces recorded from v1 |
-| `tools/` | `record_v1_traces.py` (re-record the traces), `convert_v1_map.py` |
+| `tools/` | `convert_v1_map.py` (v1 map format to level format) |
 | `spikes/` | Throwaway experiments. Do not build on them |
 | `docs/ROADMAP.md` | Phases, tasks, gates, backlog. Source of truth. |
 | `docs/HANDOFF.md` | Current status and ordered next steps |
@@ -37,7 +36,6 @@ uv sync                      # install Python 3.12 + dependencies
 uv run pytest -q             # tests
 uv run ruff check .          # lint
 uv run ruff format .         # format
-uv run python game.py        # original game (fullscreen; Enter starts, Q quits)
 uv run python -m gg_client   # the rewrite: local best of three (Esc quits; --debug for collision boxes)
 ```
 
@@ -48,7 +46,7 @@ CI (`.github/workflows/ci.yml`) runs ruff and pytest on every PR. Keep it green.
 - No imports of pygame, OpenGL or any third-party package. It must run in CPython and in pygbag's WebAssembly Python.
 - Deterministic: no wall-clock time, no unseeded randomness, no global state. Time is counted in ticks (60 per second).
 - World coordinates are Y-up, in pixels, with a rectangle's position at its bottom-left corner (as in v1). Renderers convert to screen space.
-- Behaviour must match v1 unless a roadmap task says otherwise. `tests/test_v1_parity.py` compares `World` with traces recorded from the v1 code on every tick. If a task changes behaviour on purpose, say so in the PR and update `tools/record_v1_traces.py` or retire the affected scenarios in the same PR. Never edit the trace file by hand and never loosen the comparison to make a test pass.
+- Behaviour must match v1 unless a roadmap task says otherwise. `tests/test_v1_parity.py` compares `World` with traces recorded from the v1 code on every tick. The v1 code and the recorder are gone from `main` (they are at tag `v1` and in the history), so the traces cannot be re-recorded casually. If a task changes behaviour on purpose, say so in the PR and delete only the scenarios it invalidates, replacing them with tests in `tests/test_rules.py`. Never edit the trace file by hand and never loosen the comparison to make a test pass.
 - Do not edit `data/levels/arena.json`: the traces depend on it. Add new levels as new files.
 - The interfaces are described in `docs/adr/002-core-interfaces.md`. Renderers and network code use `World.snapshot()` dicts only, never `World` objects.
 

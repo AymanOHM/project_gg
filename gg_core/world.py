@@ -1,11 +1,11 @@
 """The game rules: one World per round, advanced one tick at a time.
 
-`World.step` is a port of v1's `player.move`, `gun.fire` and `Bullet.update`
-(scripts/classes.py at tag v1). The order of operations inside a tick follows v1
-exactly, including the quirks noted below, because tests/test_v1_parity.py
-compares every tick against traces recorded from the v1 code. Change behaviour
-here only together with a roadmap task that says so, and re-record or retire the
-affected traces in the same change.
+`World.step` is a port of the original game's `player.move`, `gun.fire` and
+`Bullet.update` (scripts/classes.py at tag v1). The order of operations inside a
+tick follows v1 exactly, including the quirks noted below, because
+tests/test_v1_parity.py compares every tick against traces recorded from the v1
+code. Change behaviour here only together with a roadmap task that says so, and
+retire the affected traces in the same change.
 """
 
 from collections.abc import Mapping
