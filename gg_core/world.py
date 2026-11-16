@@ -82,6 +82,7 @@ class World:
         self.players: dict[str, Player] = {}
         self.bullets: list[Bullet] = []
         self._next_bullet_id = 1
+        self._events: list[dict] = []  # what happened during the last tick, for sound
         for pid in player_ids:
             x, y = level.spawns[pid]
             self.players[pid] = Player(
@@ -100,6 +101,7 @@ class World:
         if self.phase != PHASE_PLAYING:
             return
         self.tick += 1
+        self._events = []
 
         for player in self.players.values():
             held = inputs.get(player.id, NO_INPUT)
@@ -137,6 +139,7 @@ class World:
             "tick": self.tick,
             "phase": self.phase,
             "winner": self.winner,
+            "events": [dict(e) for e in self._events],
             "players": [
                 {
                     "id": p.id,
@@ -186,6 +189,9 @@ class World:
             p.move_x = c.RUN_SPEED
             p.wall_jumped_left, p.wall_jumped_right = True, False
             p.air_jump_ready = True
+        else:
+            return  # no jump available
+        self._events.append({"type": "jump", "player": p.id})
 
     def _move(self, p: Player, direction: int, fast_fall: bool) -> None:
         w, h, size = c.PLAYER_WIDTH, c.PLAYER_HEIGHT, self.level.tile_size
@@ -276,6 +282,7 @@ class World:
             )
         )
         self._next_bullet_id += 1
+        self._events.append({"type": "shot", "player": p.id})
 
     def _aim_gun(self, p: Player) -> None:
         p.gun_facing = p.facing
@@ -300,6 +307,7 @@ class World:
         for p in reversed(self.players.values()):
             if overlaps(b.x, b.y, w, h, p.x, p.y, c.PLAYER_WIDTH, c.PLAYER_HEIGHT):
                 p.health -= c.BULLET_DAMAGE
+                self._events.append({"type": "hit", "player": p.id})
                 return False
         for tile_x, tile_y in self.level.solid_tiles_around(b.x, b.y):
             if overlaps(b.x, b.y, w, h, tile_x, tile_y, size, size):

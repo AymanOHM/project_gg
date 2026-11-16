@@ -9,6 +9,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 import pygame as pg  # noqa: E402
 
 from gg_client.__main__ import LEVEL_PATH, main  # noqa: E402
+from gg_client.audio import Audio  # noqa: E402
 from gg_client.debug_renderer import SKY, DebugRenderer  # noqa: E402
 from gg_client.keyboard import KEYMAP, read_inputs  # noqa: E402
 from gg_client.sprite_renderer import SpriteRenderer  # noqa: E402
@@ -146,3 +147,18 @@ def test_title_and_win_screens_cover_the_view_and_clouds_drift():
     ]
     assert len(white) > 200, "the win screen's lettering is missing"
     assert pg.image.tobytes(screen, "RGB") != pg.image.tobytes(title, "RGB")
+
+
+def test_audio_plays_each_ticks_events_once():
+    pg.init()
+    audio = Audio()
+    assert audio.enabled, "sound files failed to load"
+    audio.start_music()
+    snap = {
+        "tick": 5,
+        "events": [{"type": "shot", "player": "p1"}, {"type": "hit", "player": "p2"}],
+    }
+    assert audio.play_events(snap) == ["shot", "hit"]
+    assert audio.play_events(snap) == []  # same tick drawn again
+    assert audio.play_events({"tick": 6, "events": [{"type": "unknown"}]}) == []
+    assert audio.play_events({"tick": 7, "events": [{"type": "jump", "player": "p1"}]}) == ["jump"]

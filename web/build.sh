@@ -15,6 +15,8 @@ mkdir -p "$app/data/images/entities"
 cp "$root/web/main.py" "$app/main.py"
 cp -R "$root/gg_core" "$root/gg_client" "$app/"
 cp -R "$root/data/levels" "$app/data/levels"
+cp -R "$root/data/sfx" "$app/data/sfx"
+cp "$root/data/music.ogg" "$app/data/music.ogg"
 cp -R "$root/data/images/tiles" "$root/data/images/clouds" "$app/data/images/"
 cp -R "$root/data/images/entities/player" "$root/data/images/entities/player2" "$app/data/images/entities/"
 for image in _gun bullet3 health_simple welcome P1 P2; do

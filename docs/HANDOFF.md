@@ -25,7 +25,8 @@ Each PR is based on the one above it. After merging one, GitHub retargets the ne
 | [#36](https://github.com/AymanOHM/project_gg/pull/36) | `feat/sprite-renderer` | 1.6a | Based on #35. `SpriteRenderer`; view a frame by running the client |
 | [#37](https://github.com/AymanOHM/project_gg/pull/37) | `feat/clouds-and-screens` | 1.6b | Based on #36. Clouds, welcome screen, win screens |
 | [#38](https://github.com/AymanOHM/project_gg/pull/38) | `chore/remove-v1-code` | 1.12 | Based on #37. Deletes `game.py`, `scripts/`, `map.json`, PyOpenGL. **Play v1 and the rewrite side by side before merging this one** (check out `feat/clouds-and-screens`) |
-| #39 | `feat/web-build` | 2.6, 2.7 | Based on #38. `web/build.sh`, CI web build, deploy workflow. Live at https://aymanohm.github.io/project_gg/play/ |
+| [#39](https://github.com/AymanOHM/project_gg/pull/39) | `feat/web-build` | 2.6, 2.7 | Based on #38. `web/build.sh`, CI web build, deploy workflow. Live at https://aymanohm.github.io/project_gg/play/ |
+| #40 | `feat/audio` | 2.3, 2.10 | Based on #39. OGG audio, music and effects, `events` in the snapshot. **Listen to it**: nobody has heard the result |
 
 #27 and #28 both follow #26 and both touch `pyproject.toml`/`uv.lock` (only #27 does); no conflict is expected.
 
